@@ -23,6 +23,15 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/components/ui/button.tsx', 'src/components/ui/badge.tsx'],
+    rules: {
+      'react-refresh/only-export-components': ['error', {
+        allowConstantExport: true,
+        allowExportNames: ['buttonVariants', 'badgeVariants'],
+      }],
+    },
+  },
+  {
     files: ['*.config.js'],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node },
