@@ -51,6 +51,13 @@ export interface Lote {
   unidadeId: number
 }
 
+/** Saldo agregado dos lotes de um medicamento em uma unidade; não é persistido. */
+export interface Estoque {
+  medicamentoId: number
+  unidadeId: number
+  quantidade: number
+}
+
 export interface Movimentacao {
   id: number
   tipo: TipoMovimentacao

@@ -2,7 +2,7 @@
 
 Plataforma web para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto.
 
-O projeto contém a aplicação inicial e a fundação de UI, sem funcionalidades de domínio ou backend.
+O projeto contém a aplicação inicial, a fundação de UI e a camada de dados mockados com persistência local, sem módulos completos ou backend.
 
 ## Stack atual
 
@@ -41,6 +41,7 @@ npm run dev
 npm run build
 npm run lint
 npm run typecheck
+npm test
 ```
 
 O build verifica o TypeScript e gera os arquivos em `dist/`. Para visualizar esse build localmente, execute `npm run preview`.
@@ -55,13 +56,21 @@ Fluxo previsto: `Page → Store → Service → Mock Data / localStorage`.
 - `routes/`: composição das rotas em `AppRoutes.tsx`, usando o BrowserRouter já configurado na raiz. Por enquanto, qualquer URL mantém a tela inicial.
 - `layouts/`: futura composição visual compartilhada.
 - `stores/`: futuro estado compartilhado e ações que chamarão os serviços.
-- `services/`: futuro acesso aos dados e persistência, isolado da UI.
-- `data/`: futuros dados iniciais, acessados pelos serviços.
+- `services/`: Mock Service e persistência local, isolados da UI.
+- `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
 - `types/`: contratos TypeScript do domínio, sem dependências de UI.
-- `utils/`: futuras regras puras e formatação.
+- `utils/`: agregação do estoque; futuras regras puras e formatação.
 - `hooks/`: futuros hooks reutilizáveis de interface.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Não há stores, mocks, serviços funcionais ou acesso ao localStorage nesta etapa.
+Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Não há stores ou operações de entrada, saída e transferência nesta etapa.
 
-Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; validações de quantidades, datas, vínculos e permissões serão adicionadas aos futuros fluxos. Importe contratos com `import type { Medicamento } from '@/types'`.
+Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. Validações operacionais e permissões serão adicionadas aos futuros fluxos. Importe contratos com `import type { Medicamento } from '@/types'`.
+
+## Dados locais
+
+O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 movimentações. São exemplos fictícios. `mockApi` oferece leituras assíncronas; os futuros stores serão seus consumidores. O estoque (22 combinações iniciais) é derivado dos lotes, evitando saldos duplicados.
+
+O seed só é persistido quando todas as cinco coleções estão ausentes. Recarregar não sobrescreve dados nem recalcula suas datas. Dados incompletos ou inválidos são preservados e geram feedback de erro, sem reset automático. Não há autenticação nesta etapa; a sessão não é modificada. Consulte `src/services/README.md` e `src/data/README.md` para contratos e cenários.
+
+`npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização e preservação. Não é necessário instalar dependências de teste.
