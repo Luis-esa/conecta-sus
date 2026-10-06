@@ -6,6 +6,10 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
   const ler = () => carregarDados(obterStorage())
 
   return {
+    async getDadosAplicacao() {
+      const { unidades, medicamentos, lotes, movimentacoes } = ler()
+      return { unidades, medicamentos, lotes, movimentacoes }
+    },
     async inicializarDados(): Promise<void> { ler() },
     async getUsuarios() { return ler().usuarios },
     async getUnidades() { return ler().unidades },

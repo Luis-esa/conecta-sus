@@ -3,8 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
-import { toast } from 'sonner'
-import { mockApi } from '@/services/mockApi'
+import { useAppStore } from '@/stores/appStore'
 import App from './App'
 import './index.css'
 
@@ -19,9 +18,5 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Bootstrap da infraestrutura; páginas continuam sem acesso direto aos dados.
-void mockApi.inicializarDados().catch(() => {
-  toast.error('Não foi possível carregar os dados locais. Os registros existentes foram preservados.', {
-    duration: Infinity,
-  })
-})
+// Uma inicialização fora do ciclo de render; o store também deduplica chamadas.
+void useAppStore.getState().inicializar()

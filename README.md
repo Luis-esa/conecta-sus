@@ -2,14 +2,14 @@
 
 Plataforma web para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto.
 
-O projeto contém a aplicação inicial, a fundação de UI e a camada de dados mockados com persistência local, sem módulos completos ou backend.
+O projeto contém a aplicação inicial, a fundação de UI, a camada de dados mockados com persistência local e o estado global com Zustand, sem módulos completos ou backend.
 
 ## Stack atual
 
 React, TypeScript e Vite, com ESLint para análise estática.
 
 UI: Tailwind CSS, shadcn/ui, Lucide React e Sonner.
-Dependências para as próximas telas: React Router, Zustand, React Hook Form com Zod e resolvers, Recharts e date-fns.
+React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e date-fns gera datas do seed. React Hook Form com resolvers e Recharts estão disponíveis para as próximas telas.
 
 ## Base de UI
 
@@ -17,7 +17,7 @@ O Tailwind é integrado pelo plugin do Vite. As cores e tokens estão em `src/in
 
 Os componentes shadcn/ui (base Radix, estilo New York) ficam em `src/components/ui`, com configuração em `components.json` e imports pelo alias `@/`. Estão disponíveis Button, Input, Label, Card, Badge, Table, Dialog, Select, Dropdown Menu, Sheet, Tooltip e Sonner.
 
-Use `primary` para ações, `success` para normal, `warning` para atenção e `destructive` para crítico, sempre acompanhando status com texto. O provider de Tooltip e o Toaster ficam na raiz da aplicação. Stores, formulários, gráficos e rotas de domínio serão criados nas próximas etapas.
+Use `primary` para ações, `success` para normal, `warning` para atenção e `destructive` para crítico, sempre acompanhando status com texto. O provider de Tooltip e o Toaster ficam na raiz da aplicação. Formulários, gráficos e rotas de domínio serão criados nas próximas etapas.
 
 ## Executar localmente
 
@@ -50,12 +50,12 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 ## Arquitetura
 
-Fluxo previsto: `Page → Store → Service → Mock Data / localStorage`.
+Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
 - `pages/`: telas; a tela inicial existente está em `Inicio.tsx`.
 - `routes/`: composição das rotas em `AppRoutes.tsx`, usando o BrowserRouter já configurado na raiz. Por enquanto, qualquer URL mantém a tela inicial.
 - `layouts/`: futura composição visual compartilhada.
-- `stores/`: futuro estado compartilhado e ações que chamarão os serviços.
+- `stores/`: `appStore`, actions de inicialização/recarga e seletores para consumo pelo React.
 - `services/`: Mock Service e persistência local, isolados da UI.
 - `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
 - `types/`: contratos TypeScript do domínio, sem dependências de UI.
@@ -63,13 +63,15 @@ Fluxo previsto: `Page → Store → Service → Mock Data / localStorage`.
 - `hooks/`: futuros hooks reutilizáveis de interface.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Não há stores ou operações de entrada, saída e transferência nesta etapa.
+Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Não há autenticação nem operações de entrada, saída e transferência nesta etapa.
 
 Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. Validações operacionais e permissões serão adicionadas aos futuros fluxos. Importe contratos com `import type { Medicamento } from '@/types'`.
 
 ## Dados locais
 
-O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 movimentações. São exemplos fictícios. `mockApi` oferece leituras assíncronas; os futuros stores serão seus consumidores. O estoque (22 combinações iniciais) é derivado dos lotes, evitando saldos duplicados.
+O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 movimentações. São exemplos fictícios. O `appStore` consulta `mockApi.getDadosAplicacao()` e publica as coleções de domínio juntas. O estoque (22 combinações iniciais) é derivado dos lotes por um seletor estável, evitando saldos duplicados.
+
+`main.tsx` inicializa o store fora do ciclo de render. A tela inicial consome seletores para loading, conclusão e erro, com botão de nova tentativa. Chamadas concorrentes compartilham a requisição; inicializar após sucesso não recarrega. `recarregar()` atualiza a partir do serviço, preservando os últimos dados válidos em caso de falha. Alertas e sugestões permanecem `null` (não calculados) até suas etapas. Consulte `src/stores/README.md`.
 
 O seed só é persistido quando todas as cinco coleções estão ausentes. Recarregar não sobrescreve dados nem recalcula suas datas. Dados incompletos ou inválidos são preservados e geram feedback de erro, sem reset automático. Não há autenticação nesta etapa; a sessão não é modificada. Consulte `src/services/README.md` e `src/data/README.md` para contratos e cenários.
 
