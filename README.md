@@ -52,7 +52,7 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
-- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, entradas e saídas, placeholders dos demais módulos, login, acesso negado e página 404.
+- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, entradas, saídas e transferências, placeholders dos demais módulos, login, acesso negado e página 404.
 - `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
 - `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
 - `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
@@ -63,7 +63,7 @@ Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 - `hooks/`: `useConsultas` conecta as consultas ao store e ao perfil atual.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Transferências pertencem à próxima etapa.
+Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Alertas e redistribuição pertencem às próximas etapas.
 
 Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. As operações de estoque têm validação própria em `movimentacaoSchema.ts` e no serviço. Importe contratos com `import type { Medicamento } from '@/types'`.
 
@@ -75,7 +75,7 @@ O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 m
 
 ## Layout e navegação
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos, lotes e movimentações usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
+Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos, lotes, movimentações e transferências usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
 
 A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
 
@@ -106,3 +106,7 @@ As linhas e filtros são funções puras de `src/utils/consultas.ts`; as página
 `/movimentacoes` registra entrada em lote existente ou novo e saída de um lote com saldo. Os formulários usam React Hook Form e Zod; o serviço confirma medicamento, unidade, perfil, lote e quantidade antes de gravar. A saída não aceita quantidade maior que o saldo do lote, zero ou negativa. O estoque é recalculado dos lotes, e as movimentações aparecem no histórico recente e nos dados derivados do dashboard. A origem textual da entrada é registrada no motivo da movimentação, conforme o contrato atual. A gravação persiste lote e histórico em `localStorage`, com restauração do lote anterior caso a escrita do histórico falhe.
 
 `npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização, preservação e entradas e saídas. Não é necessário instalar dependências de teste.
+
+## Transferências
+
+`/transferencias` move uma quantidade de um lote entre unidades ativas. O perfil UBS pode enviar somente da própria unidade; ADMIN e GESTOR podem selecionar a origem. O serviço rejeita origem igual ao destino, quantidade não positiva ou acima do saldo, lote inexistente/incompatível e medicamento indisponível. No destino, soma ao lote com mesmo medicamento, número e validade ou cria um novo lote. Um registro `TRANSFERENCIA` com origem, destino e usuário vincula os lançamentos `SAIDA` e `ENTRADA`; o histórico recente mostra uma linha consolidada. Lotes e movimentações são gravados juntos pela camada de persistência com reversão em falha de escrita. Estoque e indicadores são derivados dos lotes atualizados.

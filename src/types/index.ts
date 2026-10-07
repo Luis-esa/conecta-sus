@@ -63,6 +63,8 @@ export interface Movimentacao {
   tipo: TipoMovimentacao
   medicamentoId: number
   loteId?: number
+  /** Vincula os lançamentos de débito/crédito ao registro consolidado da transferência. */
+  transferenciaId?: number
   quantidade: number
   origemId?: number
   destinoId?: number

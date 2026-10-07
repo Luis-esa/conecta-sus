@@ -29,5 +29,15 @@ export const saidaSchema = z.object({
   usuarioId: id,
 })
 
+export const transferenciaSchema = z.object({
+  origemId: id,
+  destinoId: id,
+  medicamentoId: id,
+  loteId: id,
+  quantidade,
+  usuarioId: id,
+}).refine((dados) => dados.origemId !== dados.destinoId, { message: 'A unidade de destino deve ser diferente da origem.', path: ['destinoId'] })
+
 export type EntradaDados = z.infer<typeof entradaSchema>
 export type SaidaDados = z.infer<typeof saidaSchema>
+export type TransferenciaDados = z.infer<typeof transferenciaSchema>

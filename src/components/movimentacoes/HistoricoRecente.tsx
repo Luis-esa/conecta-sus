@@ -6,7 +6,7 @@ import type { Lote, Medicamento, Movimentacao, Unidade } from '@/types'
 const tipos = { ENTRADA: 'Entrada', SAIDA: 'Saída', TRANSFERENCIA: 'Transferência' }
 
 export default function HistoricoRecente({ movimentacoes, medicamentos, lotes, unidades }: { movimentacoes: readonly Movimentacao[]; medicamentos: readonly Medicamento[]; lotes: readonly Lote[]; unidades: readonly Unidade[] }) {
-  const recentes = [...movimentacoes].sort((a, b) => b.dataHora.localeCompare(a.dataHora) || b.id - a.id).slice(0, 10)
+  const recentes = movimentacoes.filter((item) => item.transferenciaId === undefined).sort((a, b) => b.dataHora.localeCompare(a.dataHora) || b.id - a.id).slice(0, 10)
   const medPorId = new Map(medicamentos.map((item) => [item.id, item]))
   const lotePorId = new Map(lotes.map((item) => [item.id, item]))
   const unidadePorId = new Map(unidades.map((item) => [item.id, item]))
@@ -22,7 +22,7 @@ export default function HistoricoRecente({ movimentacoes, medicamentos, lotes, u
           <TableCell className="font-medium">{medPorId.get(item.medicamentoId)?.nome ?? 'Medicamento'}</TableCell>
           <TableCell className="font-mono text-xs">{item.loteId ? lotePorId.get(item.loteId)?.numero ?? '—' : '—'}</TableCell>
           <TableCell className="text-right font-semibold tabular-nums">{item.quantidade}</TableCell>
-          <TableCell>{unidadePorId.get(unidadeId ?? -1)?.nome ?? 'Outra unidade'}</TableCell>
+          <TableCell>{item.tipo === 'TRANSFERENCIA' ? `${unidadePorId.get(item.origemId ?? -1)?.nome ?? 'Origem'} → ${unidadePorId.get(item.destinoId ?? -1)?.nome ?? 'Destino'}` : unidadePorId.get(unidadeId ?? -1)?.nome ?? 'Outra unidade'}</TableCell>
           <TableCell className="max-w-56 truncate pr-5 text-sm text-muted-foreground sm:pr-6" title={item.motivo}>{item.motivo ?? '—'}</TableCell>
         </TableRow>
       })}</TableBody>

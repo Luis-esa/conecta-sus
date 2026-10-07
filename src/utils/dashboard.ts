@@ -42,6 +42,7 @@ export function calcularDashboard(dados: DadosDashboard, usuario: Usuario, agora
   const visiveis = filtrarDadosDaUnidade(usuario, dados)
   const medicamentosPorId = new Map(dados.medicamentos.map((item) => [item.id, item]))
   const unidadesPorId = new Map(visiveis.unidades.map((item) => [item.id, item]))
+  const nomesUnidades = new Map(dados.unidades.map((item) => [item.id, item.nome]))
   const situacoes = visiveis.estoque.map((item) => ({
     ...item,
     status: classificarEstoque(item.quantidade, medicamentosPorId.get(item.medicamentoId)?.estoqueMinimo ?? 0),
@@ -81,7 +82,7 @@ export function calcularDashboard(dados: DadosDashboard, usuario: Usuario, agora
     ...[...vencimentos.values()].map((item) => ({ id: `vencimento-${item.unidadeId}-${item.medicamentoId}`, titulo: medicamentosPorId.get(item.medicamentoId)?.nome ?? 'Medicamento', detalhe: `${unidadesPorId.get(item.unidadeId)?.nome ?? 'Unidade'} · lote ${item.numero} · validade ${format(parseISO(item.dataValidade), 'dd/MM/yyyy')}`, tipo: 'VENCIMENTO' as const })),
   ]
 
-  const movimentacoes: MovimentacaoResumo[] = [...visiveis.movimentacoes]
+  const movimentacoes: MovimentacaoResumo[] = visiveis.movimentacoes.filter((item) => item.transferenciaId === undefined)
     .sort((a, b) => b.dataHora.localeCompare(a.dataHora) || b.id - a.id)
     .slice(0, 5)
     .map((item) => ({
@@ -91,7 +92,7 @@ export function calcularDashboard(dados: DadosDashboard, usuario: Usuario, agora
       medicamento: medicamentosPorId.get(item.medicamentoId)?.nome ?? 'Medicamento',
       quantidade: item.quantidade,
       unidade: item.tipo === 'TRANSFERENCIA'
-        ? `${unidadesPorId.get(item.origemId ?? -1)?.nome ?? 'Origem'} → ${unidadesPorId.get(item.destinoId ?? -1)?.nome ?? 'Destino'}`
+        ? `${nomesUnidades.get(item.origemId ?? -1) ?? 'Origem'} → ${nomesUnidades.get(item.destinoId ?? -1) ?? 'Destino'}`
         : unidadesPorId.get((item.tipo === 'ENTRADA' ? item.destinoId : item.origemId) ?? -1)?.nome ?? 'Unidade',
     }))
 

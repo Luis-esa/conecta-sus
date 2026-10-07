@@ -24,7 +24,7 @@ const loteSchema = z.object({
 }) satisfies z.ZodType<Lote>
 const movimentacaoSchema = z.object({
   id, tipo: z.enum(['ENTRADA', 'SAIDA', 'TRANSFERENCIA']), medicamentoId: id,
-  loteId: id.optional(), quantidade: quantidade.positive(), origemId: id.optional(), destinoId: id.optional(),
+  loteId: id.optional(), transferenciaId: id.optional(), quantidade: quantidade.positive(), origemId: id.optional(), destinoId: id.optional(),
   usuarioId: id, dataHora: z.iso.datetime({ offset: true }),
   motivo: z.string().optional(), observacao: z.string().optional(),
 }) satisfies z.ZodType<Movimentacao>
@@ -44,6 +44,7 @@ export const dadosSchema = z.object({
   const medicamentos = new Set(dados.medicamentos.map((item) => item.id))
   const usuarios = new Set(dados.usuarios.map((item) => item.id))
   const lotes = new Map(dados.lotes.map((item) => [item.id, item]))
+  const transferencias = new Map(dados.movimentacoes.filter((item) => item.tipo === 'TRANSFERENCIA').map((item) => [item.id, item]))
   for (const usuario of dados.usuarios) {
     if ((usuario.role === 'UBS' && usuario.unidadeId === undefined)
       || (usuario.unidadeId !== undefined && !unidades.has(usuario.unidadeId))) erro('Usuário com unidade inválida.')
@@ -52,6 +53,12 @@ export const dadosSchema = z.object({
     if (!medicamentos.has(lote.medicamentoId) || !unidades.has(lote.unidadeId)) erro('Lote com referência inválida.')
   }
   for (const movimento of dados.movimentacoes) {
+    if (movimento.transferenciaId !== undefined) {
+      const transferencia = transferencias.get(movimento.transferenciaId)
+      if (!transferencia || movimento.tipo === 'TRANSFERENCIA' || transferencia.medicamentoId !== movimento.medicamentoId || transferencia.quantidade !== movimento.quantidade ||
+        (movimento.tipo === 'SAIDA' && movimento.origemId !== transferencia.origemId) ||
+        (movimento.tipo === 'ENTRADA' && movimento.destinoId !== transferencia.destinoId)) erro('Lançamento de transferência incompatível.')
+    }
     if (!medicamentos.has(movimento.medicamentoId) || !usuarios.has(movimento.usuarioId)) erro('Movimentação com referência inválida.')
     if (movimento.origemId !== undefined && !unidades.has(movimento.origemId)) erro('Origem inexistente.')
     if (movimento.destinoId !== undefined && !unidades.has(movimento.destinoId)) erro('Destino inexistente.')
@@ -62,6 +69,13 @@ export const dadosSchema = z.object({
       const lote = lotes.get(movimento.loteId)
       const unidadeId = movimento.tipo === 'ENTRADA' ? movimento.destinoId : movimento.origemId
       if (!lote || lote.medicamentoId !== movimento.medicamentoId || lote.unidadeId !== unidadeId) erro('Movimentação com lote incompatível.')
+    }
+  }
+  for (const transferencia of transferencias.values()) {
+    const lancamentos = dados.movimentacoes.filter((item) => item.transferenciaId === transferencia.id)
+    if (lancamentos.length !== 2 || !lancamentos.some((item) => item.tipo === 'SAIDA' && item.loteId === transferencia.loteId) ||
+      !lancamentos.some((item) => item.tipo === 'ENTRADA') || lancamentos.some((item) => item.dataHora !== transferencia.dataHora)) {
+      erro('Transferência sem débito e crédito correspondentes.')
     }
   }
 })

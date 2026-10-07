@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { ZodError } from 'zod'
 import { mockApi } from '../services/mockApi.ts'
-import type { EntradaDados, SaidaDados } from '../services/movimentacaoSchema.ts'
+import type { EntradaDados, SaidaDados, TransferenciaDados } from '../services/movimentacaoSchema.ts'
 import type { Alerta, SugestaoRedistribuicao } from '../types/index.ts'
 
-type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida'>>
+type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida' | 'registrarTransferencia'>>
 type DadosAplicacao = Awaited<ReturnType<ServicoAplicacao['getDadosAplicacao']>>
 
 export interface AppState extends DadosAplicacao {
@@ -20,6 +20,7 @@ export interface AppState extends DadosAplicacao {
   recarregar: () => Promise<void>
   registrarEntrada: (dados: EntradaDados) => Promise<boolean>
   registrarSaida: (dados: SaidaDados) => Promise<boolean>
+  registrarTransferencia: (dados: TransferenciaDados) => Promise<boolean>
   limparErroOperacao: () => void
 }
 
@@ -82,6 +83,10 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
       registrarSaida: (dados) => operar(() => {
         if (!servico.registrarSaida) throw new Error('Registro de saída indisponível.')
         return servico.registrarSaida(dados)
+      }),
+      registrarTransferencia: (dados) => operar(() => {
+        if (!servico.registrarTransferencia) throw new Error('Registro de transferência indisponível.')
+        return servico.registrarTransferencia(dados)
       }),
       limparErroOperacao: () => set({ operacaoErro: null }),
     }

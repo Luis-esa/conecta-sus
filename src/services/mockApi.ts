@@ -1,6 +1,7 @@
+import { format } from 'date-fns'
 import { agregarEstoque } from '../utils/estoque.ts'
 import { carregarDados, salvarOperacao, type Armazenamento } from './persistencia.ts'
-import { entradaSchema, saidaSchema, type EntradaDados, type SaidaDados } from './movimentacaoSchema.ts'
+import { entradaSchema, saidaSchema, transferenciaSchema, type EntradaDados, type SaidaDados, type TransferenciaDados } from './movimentacaoSchema.ts'
 import type { Lote, Movimentacao, Usuario } from '../types/index.ts'
 
 function validarAcesso(usuario: Usuario | undefined, unidadeId: number) {
@@ -92,8 +93,47 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
       const salvos = salvarOperacao(storage, { ...dados, lotes, movimentacoes: [...dados.movimentacoes, movimentacao] })
       return { unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
     },
+    async registrarTransferencia(input: TransferenciaDados) {
+      const pedido = transferenciaSchema.parse(input)
+      const storage = obterStorage()
+      const dados = carregarDados(storage)
+      const origem = dados.unidades.find((item) => item.id === pedido.origemId && item.status === 'ATIVA')
+      const destino = dados.unidades.find((item) => item.id === pedido.destinoId && item.status === 'ATIVA')
+      const medicamento = dados.medicamentos.find((item) => item.id === pedido.medicamentoId && item.ativo)
+      const usuario = dados.usuarios.find((item) => item.id === pedido.usuarioId)
+      if (!origem || !destino || !medicamento) throw new Error('Medicamento ou unidade indisponível para transferência.')
+      validarAcesso(usuario, origem.id)
+      const loteOrigem = dados.lotes.find((item) => item.id === pedido.loteId)
+      if (!loteOrigem || loteOrigem.unidadeId !== origem.id || loteOrigem.medicamentoId !== medicamento.id) {
+        throw new Error('Lote inexistente ou incompatível com o medicamento e a unidade de origem.')
+      }
+      if (pedido.quantidade > loteOrigem.quantidade) {
+        throw new Error(`A quantidade solicitada é maior que o estoque disponível na origem. Disponível no lote: ${loteOrigem.quantidade}. Solicitado: ${pedido.quantidade}.`)
+      }
+      const loteDestinoExistente = dados.lotes.find((item) => item.unidadeId === destino.id && item.medicamentoId === medicamento.id && item.numero.toLowerCase() === loteOrigem.numero.toLowerCase())
+      if (loteDestinoExistente && loteDestinoExistente.dataValidade !== loteOrigem.dataValidade) {
+        throw new Error('O lote no destino possui a mesma identificação, mas validade diferente.')
+      }
+      const loteDestinoId = loteDestinoExistente?.id ?? proximoId(dados.lotes)
+      const agora = new Date()
+      const dataHora = agora.toISOString()
+      const lotes: Lote[] = dados.lotes.map((item) => item.id === loteOrigem.id
+        ? { ...item, quantidade: item.quantidade - pedido.quantidade }
+        : item.id === loteDestinoId ? { ...item, quantidade: item.quantidade + pedido.quantidade } : item)
+      if (!loteDestinoExistente) lotes.push({ id: loteDestinoId, medicamentoId: medicamento.id, numero: loteOrigem.numero, quantidade: pedido.quantidade, dataEntrada: format(agora, 'yyyy-MM-dd'), dataValidade: loteOrigem.dataValidade, unidadeId: destino.id })
+
+      const transferenciaId = proximoId(dados.movimentacoes)
+      const base = { medicamentoId: medicamento.id, quantidade: pedido.quantidade, usuarioId: usuario!.id, dataHora }
+      const movimentacoes: Movimentacao[] = [
+        ...dados.movimentacoes,
+        { ...base, id: transferenciaId, tipo: 'TRANSFERENCIA', loteId: loteOrigem.id, origemId: origem.id, destinoId: destino.id, motivo: `Transferência de ${origem.nome} para ${destino.nome}` },
+        { ...base, id: transferenciaId + 1, tipo: 'SAIDA', loteId: loteOrigem.id, origemId: origem.id, transferenciaId, motivo: `Transferência para ${destino.nome}` },
+        { ...base, id: transferenciaId + 2, tipo: 'ENTRADA', loteId: loteDestinoId, destinoId: destino.id, transferenciaId, motivo: `Transferência de ${origem.nome}` },
+      ]
+      const salvos = salvarOperacao(storage, { ...dados, lotes, movimentacoes })
+      return { unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
+    },
   }
 }
 
-// Transferências serão acrescentadas na etapa própria, usando a mesma persistência.
 export const mockApi = criarMockApi()

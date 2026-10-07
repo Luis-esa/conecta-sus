@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ConsultaEstado } from '@/components/consultas/ConsultaUI'
 import { useConsultas } from '@/hooks/useConsultas'
 import { useAppStore } from '@/stores/appStore'
-import { selecionarMedicamentos, selecionarMovimentacoes, selecionarUnidades } from '@/stores/appSelectors'
+import { selecionarLotes, selecionarMedicamentos, selecionarMovimentacoes, selecionarUnidades } from '@/stores/appSelectors'
 import { filtrarDadosDaUnidade } from '@/utils/escopo'
 
 type Modo = 'ENTRADA' | 'SAIDA'
@@ -19,6 +19,7 @@ export default function Movimentacoes() {
   const medicamentos = useAppStore(selecionarMedicamentos)
   const unidades = useAppStore(selecionarUnidades)
   const movimentacoes = useAppStore(selecionarMovimentacoes)
+  const todosLotes = useAppStore(selecionarLotes)
   const limparErro = useAppStore((state) => state.limparErroOperacao)
   useEffect(() => { limparErro() }, [limparErro])
   const visiveis = usuario ? filtrarDadosDaUnidade(usuario, { unidades, lotes: [], estoque: [], movimentacoes }).movimentacoes : []
@@ -33,7 +34,7 @@ export default function Movimentacoes() {
           ? <EntradaForm usuario={usuario} unidades={consultas.unidades} medicamentos={medicamentos} lotes={consultas.lotes.map((item) => item.lote)} />
           : <SaidaForm usuario={usuario} unidades={consultas.unidades} medicamentos={medicamentos} lotes={consultas.lotes.map((item) => item.lote)} />}</div>
       </section>
-      <HistoricoRecente movimentacoes={visiveis} medicamentos={medicamentos} lotes={consultas.lotes.map((item) => item.lote)} unidades={consultas.unidades} />
+      <HistoricoRecente movimentacoes={visiveis} medicamentos={medicamentos} lotes={todosLotes} unidades={unidades} />
     </div>}
   </ConsultaEstado>
 }
