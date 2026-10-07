@@ -19,7 +19,6 @@ const Historico = lazy(() => import('@/pages/Historico'))
 const Relatorios = lazy(() => import('@/pages/Relatorios'))
 const Unidades = lazy(() => import('@/pages/Unidades'))
 const Usuarios = lazy(() => import('@/pages/Usuarios'))
-const ModulePlaceholder = lazy(() => import('@/pages/ModulePlaceholder'))
 
 const paginasOperacionais: Record<string, React.ReactNode> = {
   '/dashboard': <Dashboard />,
@@ -43,7 +42,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {navigation.map((page) => <Route key={page.path} path={page.path} element={<PermissionRoute path={page.path}><Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Carregando página…</p>}>{paginasOperacionais[page.path] ?? <ModulePlaceholder page={page} />}</Suspense></PermissionRoute>} />)}
+          {navigation.map((page) => <Route key={page.path} path={page.path} element={<PermissionRoute path={page.path}><Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Carregando página…</p>}>{paginasOperacionais[page.path] ?? <NotFound />}</Suspense></PermissionRoute>} />)}
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

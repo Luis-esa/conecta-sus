@@ -2,7 +2,7 @@
 
 `appStore.ts` contém um store pequeno de dados de domínio, consumido por React através de `useAppStore(selector)`. Não acessa localStorage nem importa mocks: consulta `mockApi.getDadosAplicacao()`, que lê e valida as coleções em uma única chamada. Não há middleware de persistência duplicando a base local.
 
-Estado: unidades, medicamentos, lotes, movimentações, `carregando`, `dadosCarregados` e `erro`. `alertas` é `null` antes da carga e depois contém a lista derivada dos lotes; é recalculado após entradas, saídas, transferências e recarga. Sugestões permanecem `null` até sua etapa. `operacaoCarregando` e `operacaoErro` representam o registro de movimentações.
+Estado: unidades, medicamentos, lotes, movimentações, `carregando`, `dadosCarregados` e `erro`. `alertas` é `null` antes da carga e depois contém a lista derivada dos lotes; é recalculado após entradas, saídas, transferências e recarga. Sugestões são derivadas dos saldos após carga, recarga e operações; nunca executam transferências automaticamente. `operacaoCarregando` e `operacaoErro` representam o registro de movimentações.
 
 `authStore.ts` separa a sessão dos dados de domínio. Expõe `usuarioAtual`, `isAuthenticated`, `inicializado`, `carregando` e `erro`, além de `inicializar()`, `login()` e `logout()`. A persistência fica no `authApi`, não nos componentes. O bootstrap restaura a sessão uma vez, sem efeito de render que cause loop.
 

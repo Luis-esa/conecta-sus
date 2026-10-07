@@ -1,116 +1,99 @@
-# ConectaSUS
+﻿# ConectaSUS
 
-Plataforma web para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto.
+MVP para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto. **O backend é simulado**: dados fictícios e persistência no localStorage do navegador.
 
-O projeto contém UI, dados mockados com persistência local, estado global com Zustand, layout, autenticação simulada por perfil e consultas e movimentações operacionais, sem backend.
+## Stack
 
-## Stack atual
+React, TypeScript, Vite, Tailwind CSS, shadcn/ui (Radix), Lucide React, React Router, Zustand, React Hook Form, Zod, Recharts, date-fns e Sonner.
 
-React, TypeScript e Vite, com ESLint para análise estática.
+## Instalação e execução
 
-UI: Tailwind CSS, shadcn/ui, Lucide React e Sonner.
-React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e os formulários; React Hook Form gerencia os formulários. date-fns trata datas e Recharts visualiza indicadores do dashboard.
-
-## Base de UI
-
-O Tailwind é integrado pelo plugin do Vite. As cores e tokens estão em `src/index.css`; o tema atual é claro e usa fontes do sistema, sem downloads de fontes.
-
-Os componentes shadcn/ui (base Radix, estilo New York) ficam em `src/components/ui`, com configuração em `components.json` e imports pelo alias `@/`. Estão disponíveis Button, Input, Label, Card, Badge, Table, Dialog, Select, Dropdown Menu, Sheet, Tooltip e Sonner.
-
-Use `primary` para ações, `success` para normal, `warning` para atenção e `destructive` para crítico, sempre acompanhando status com texto. O provider de Tooltip e o Toaster ficam na raiz da aplicação.
-
-## Executar localmente
-
-Requer Node.js 22.22+ (recomendado Node.js 24) e npm.
-
-Na pasta do repositório, instale as dependências:
+Requer Node.js 22.22+ (recomendado 24) e npm. Dentro do repositório:
 
 ```sh
-npm install
-```
-
-Inicie o ambiente de desenvolvimento e abra a URL indicada no terminal:
-
-```sh
+npm ci
 npm run dev
 ```
 
-## Build e verificações
+Abra a URL indicada pelo Vite. No PowerShell, use `npm.cmd` se a política de execução bloquear `npm.ps1`.
 
 ```sh
-npm run build
 npm run lint
 npm run typecheck
 npm test
+npm run build
+npm run preview
 ```
 
-O build verifica o TypeScript e gera os arquivos em `dist/`. Para visualizar esse build localmente, execute `npm run preview`.
+O build valida TypeScript e gera `dist/`. A hospedagem estática deve redirecionar rotas da SPA para `index.html`.
 
-No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no lugar de `npm` nos comandos acima.
+## Usuários de demonstração
 
-## Arquitetura
+Todos usam a senha fictícia `123456`.
 
-Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
+| Perfil | E-mail | Escopo |
+| --- | --- | --- |
+| ADMIN | admin@conectasus.com | Operação e cadastros administrativos |
+| GESTOR | gestor@conectasus.com | Rede municipal, histórico e relatórios |
+| UBS | ubs01@conectasus.com | Estoque e operações da UBS 01 |
 
-- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, entradas, saídas, transferências e alertas, placeholders dos demais módulos, login, acesso negado e página 404.
-- `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
-- `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
-- `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
-- `services/`: Mock Service e persistência local, isolados da UI.
-- `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
-- `types/`: contratos TypeScript do domínio, sem dependências de UI.
-- `utils/`: agregação/classificação do estoque, validade, consultas, cálculos do dashboard e recorte por unidade.
-- `hooks/`: `useConsultas` conecta as consultas ao store e ao perfil atual.
-- `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
+Também existem `ubs02@conectasus.com` até `ubs05@conectasus.com`, vinculados às respectivas unidades. Contas inativas não entram. Logout encerra a sessão; recarregar restaura a sessão ativa.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Redistribuição e consumo pertencem às próximas etapas.
+## Funcionalidades
 
-Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. As operações de estoque têm validação própria em `movimentacaoSchema.ts` e no serviço. Importe contratos com `import type { Medicamento } from '@/types'`.
+- Dashboard com indicadores e gráficos derivados dos dados operacionais.
+- Consulta de estoque e lotes com busca, filtros e validade.
+- Entradas, saídas e transferências manuais, com validação de quantidades e saldo.
+- Alertas de estoque baixo/crítico e vencimento em até 90 dias.
+- Sugestões de redistribuição entre unidades; nunca executam transferências automaticamente.
+- Consumo médio mensal e estimativa de meses de estoque, sem divisão por zero.
+- Histórico somente para consulta, com filtros de período, medicamento, unidade, operação e usuário.
+- Relatórios de estoque, validade, movimentações e consumo com tabelas e gráficos dos mesmos dados.
+- ADMIN: cadastro, edição e ativação/inativação de medicamentos, unidades e usuários; correção de validade de lotes preservando seus vínculos. Novos lotes entram por movimentação, sem edição direta de saldo.
+- Layout responsivo, navegação por perfil, feedback de erro/sucesso, carregamento e estados vazios.
 
-## Dados locais
+## Estrutura
 
-O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 movimentações. São exemplos fictícios. O `appStore` consulta `mockApi.getDadosAplicacao()` e publica as coleções de domínio juntas. O estoque (22 combinações iniciais) é derivado dos lotes por um seletor estável, evitando saldos duplicados.
+Fluxo: `Page → Store → Service → Mock Data / localStorage`.
 
-`main.tsx` inicializa o store fora do ciclo de render. O layout consome seletores para loading e erro, com botão de nova tentativa. Chamadas concorrentes compartilham a requisição; inicializar após sucesso não recarrega. `recarregar()` atualiza a partir do serviço, preservando os últimos dados válidos em caso de falha. Alertas são derivados dos dados carregados; sugestões permanecem `null` até sua etapa. Consulte `src/stores/README.md`.
+```text
+src/
+├── components/  # UI, formulários, tabelas e gráficos
+├── pages/       # telas operacionais e administrativas
+├── layouts/     # estrutura de navegação responsiva
+├── routes/      # rotas e permissões por perfil
+├── stores/      # dados operacionais e sessão
+├── services/    # mockApi, autenticação, validação e persistência
+├── data/        # seed inicial tipado
+├── types/       # contratos do domínio
+├── utils/       # cálculos, filtros e regras testáveis
+├── hooks/       # integração das consultas com React
+└── lib/         # utilitários visuais
+```
 
-## Layout e navegação
+## Persistência e cenários
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos, lotes, movimentações, transferências e alertas usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
+O seed contém 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 movimentações, com estoque normal, baixo, crítico, excesso, vencimento próximo e histórico insuficiente. As datas são relativas à primeira inicialização e não são renovadas ao recarregar.
 
-A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
+As coleções usam `conectasus_users`, `conectasus_unidades`, `conectasus_medicamentos`, `conectasus_lotes` e `conectasus_movimentacoes`; a sessão usa `conectasus_session`. Estoque, alertas e sugestões são derivados, evitando saldos duplicados. O seed só é gravado quando todas as coleções estão ausentes. Dados inválidos geram erro e não são apagados automaticamente.
 
-O Vite permite abrir e recarregar URLs diretamente em dev e preview. Uma futura hospedagem estática deve encaminhar as rotas da SPA para `index.html`. O ESLint ignora a cópia de trabalho em `.kilo/worktrees` e fixa a raiz desta configuração.
+## Roteiro de demonstração
 
-O seed só é persistido quando todas as cinco coleções estão ausentes. Recarregar não sobrescreve dados nem recalcula suas datas. Dados incompletos ou inválidos são preservados e geram feedback de erro, sem reset automático. Consulte `src/services/README.md` e `src/data/README.md` para contratos e cenários.
+1. Entre como GESTOR e confira o dashboard e o estoque.
+2. Em Movimentações, registre entrada de 50 de Dipirona na UBS 02, lote existente. No seed novo, o saldo passa de 80 para 130; recarregue e confirme.
+3. Registre saída de 20: saldo 110. Tente uma saída maior que o disponível e confira a mensagem, sem mudança no saldo.
+4. Transfira 25 de Paracetamol da UBS 01 para UBS 05. Confira redução e aumento iguais nas unidades e recarregue.
+5. Consulte Histórico, filtre período/medicamento e confira os registros. Abra Alertas, Redistribuição e consumo e Relatórios.
+6. Saia e entre como UBS 01: estoque, lotes, dashboard e histórico devem respeitar a unidade; administração e relatórios municipais não ficam disponíveis.
+7. Opcionalmente, entre como ADMIN para demonstrar cadastros e inativação sem excluir o histórico.
 
-## Login de demonstração
+Os saldos do roteiro dependem dos dados já persistidos. Para uma demonstração independente, use outro perfil de navegador ou outra porta de desenvolvimento, sem apagar a base existente.
 
-Use `admin@conectasus.com`, `gestor@conectasus.com` ou `ubs01@conectasus.com`, todos com senha `123456`. O `authStore` solicita ao serviço a validação do usuário ativo dos mocks; a sessão guarda somente o ID em `conectasus_session` e é restaurada ao recarregar. Sair remove essa chave. A validação do formulário usa React Hook Form e Zod.
+## Limitações do MVP
 
-ADMIN acessa todas as áreas, GESTOR acessa a visão municipal sem administração, e UBS acessa as operações permitidas para sua unidade. A sidebar esconde áreas não autorizadas e o acesso direto a elas mostra “Acesso não autorizado.”. `filtrarDadosDaUnidade` prepara o recorte de unidades, lotes, estoque e movimentações para as próximas telas. Essas restrições de frontend são apenas uma simulação para o protótipo.
-
-## Dashboard
-
-`/dashboard` apresenta indicadores calculados de unidades, medicamentos, situações de estoque crítico e baixo, vencimentos e possibilidades de redistribuição. O gráfico usa Recharts para mostrar a distribuição dos saldos por situação; a tabela resume cada unidade. Pontos de atenção e movimentações recentes são derivados dos lotes e do histórico persistidos. Não há valores de indicadores fixos na UI.
-
-O cálculo do painel está em `src/utils/dashboard.ts`, usando a classificação de `src/utils/estoque.ts` e a janela de vencimento de `src/utils/validade.ts`. O contador de redistribuição é uma prévia municipal de necessidades com ao menos uma origem acima de duas vezes o mínimo; não cria sugestão persistida nem executa transferência. ADMIN e GESTOR veem a rede; UBS recebe apenas o recorte da própria unidade. O dashboard mostra carregamento, vazio e erro conforme o estado do store.
-
-## Consultas operacionais
-
-`/estoque` mostra o saldo agregado por medicamento/unidade, mínimo, quantidade de lotes, validade mais próxima com saldo e status. A busca cobre nome, princípio ativo, código e número do lote; filtros de unidade, status e validade podem ser combinados. O link de lotes abre `/lotes` com medicamento e unidade selecionados. `/lotes` mostra cada lote, quantidade, entrada e validade; `/medicamentos` mostra os campos do catálogo, limites e situação ativa/inativa. As tabelas permitem rolagem horizontal em telas menores.
-
-As linhas e filtros são funções puras de `src/utils/consultas.ts`; as páginas recebem dados pelo `useConsultas`, sem consultar mocks ou localStorage diretamente. Para UBS, estoque e lotes mostram somente a unidade vinculada. A rota de medicamentos segue a matriz de permissões vigente e não está disponível para UBS. Cadastro e edição administrativos ficam para a etapa própria.
-
-## Entradas e saídas
-
-`/movimentacoes` registra entrada em lote existente ou novo e saída de um lote com saldo. Os formulários usam React Hook Form e Zod; o serviço confirma medicamento, unidade, perfil, lote e quantidade antes de gravar. A saída não aceita quantidade maior que o saldo do lote, zero ou negativa. O estoque é recalculado dos lotes, e as movimentações aparecem no histórico recente e nos dados derivados do dashboard. A origem textual da entrada é registrada no motivo da movimentação, conforme o contrato atual. A gravação persiste lote e histórico em `localStorage`, com restauração do lote anterior caso a escrita do histórico falhe.
-
-`npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização, preservação e entradas e saídas. Não é necessário instalar dependências de teste.
-
-## Alertas e notificações
-
-`/alertas` mostra situações de estoque baixo, crítico e lotes vencidos ou com vencimento em até `DIAS_ALERTA_VENCIMENTO` dias (90). Criticidade prevalece sobre baixo estoque, evitando dois alertas de saldo para a mesma combinação. Os alertas são calculados em memória a partir dos lotes e publicados no Zustand após carga ou movimentação; não são persistidos separadamente. A página filtra por medicamento, tipo, unidade e severidade. O painel de notificações no header mostra a contagem e os alertas prioritários para o perfil. UBS vê apenas a própria unidade.
-
-## Transferências
-
-`/transferencias` move uma quantidade de um lote entre unidades ativas. O perfil UBS pode enviar somente da própria unidade; ADMIN e GESTOR podem selecionar a origem. O serviço rejeita origem igual ao destino, quantidade não positiva ou acima do saldo, lote inexistente/incompatível e medicamento indisponível. No destino, soma ao lote com mesmo medicamento, número e validade ou cria um novo lote. Um registro `TRANSFERENCIA` com origem, destino e usuário vincula os lançamentos `SAIDA` e `ENTRADA`; o histórico recente mostra uma linha consolidada. Lotes e movimentações são gravados juntos pela camada de persistência com reversão em falha de escrita. Estoque e indicadores são derivados dos lotes atualizados.
+- Sem backend, sincronização entre dispositivos, autenticação real ou proteção de dados no servidor. Perfis e senha são uma simulação; não utilizar dados reais.
+- Persistência por origem/navegador; não oferece transações de banco nem coordenação de gravações simultâneas em várias abas. Use uma aba operacional por vez.
+- Consumo considera os três meses calendários completos anteriores, exige saídas em todos eles e exclui débitos de transferências. Na ausência de histórico suficiente, não estima cobertura.
+- Redistribuição usa excesso acima de duas vezes o mínimo e falta abaixo do mínimo; a decisão e a transferência são manuais.
+- Relatórios são consultas em tela, sem geração complexa de PDF. Período, operação e usuário filtram movimentações; estoque e validade são fotografias atuais, e consumo usa sua janela mensal própria.
+- Inativação preserva IDs e vínculos; nomes exibidos no histórico refletem os cadastros atuais. Não há trilha completa de auditoria de alterações cadastrais.
