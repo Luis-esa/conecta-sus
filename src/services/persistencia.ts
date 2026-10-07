@@ -63,3 +63,13 @@ export function salvarOperacao(storage: Armazenamento, dados: DadosPersistidos):
   }
   return validos
 }
+
+/** Cadastros alteram uma coleção por vez; as referências são verificadas antes da escrita. */
+export function salvarCadastro(storage: Armazenamento, dados: DadosPersistidos, colecao: keyof DadosPersistidos): DadosPersistidos {
+  const validos = dadosSchema.parse(dados)
+  const chave = CHAVES_DADOS[colecao]
+  if (storage.getItem(chave) === null) throw new Error('Dados locais incompletos. O cadastro não foi gravado.')
+  try { storage.setItem(chave, JSON.stringify(validos[colecao])) }
+  catch (cause) { throw new Error('Não foi possível salvar o cadastro neste navegador.', { cause }) }
+  return validos
+}

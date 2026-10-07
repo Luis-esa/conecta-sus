@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { ZodError } from 'zod'
 import { mockApi } from '../services/mockApi.ts'
 import type { EntradaDados, SaidaDados, TransferenciaDados } from '../services/movimentacaoSchema.ts'
+import type { MedicamentoCadastro, UnidadeCadastro, UsuarioCadastro } from '../services/cadastroSchema.ts'
 import { gerarAlertas, type AlertaAtual } from '../utils/alertas.ts'
 import { agregarEstoque } from '../utils/estoque.ts'
 import { gerarSugestoesRedistribuicao, type SugestaoDetalhada } from '../utils/redistribuicao.ts'
 
-type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida' | 'registrarTransferencia'>>
+type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida' | 'registrarTransferencia' | 'salvarMedicamento' | 'salvarUnidade' | 'salvarUsuario' | 'corrigirValidadeLote'>>
 type DadosAplicacao = Awaited<ReturnType<ServicoAplicacao['getDadosAplicacao']>>
 
 export interface AppState extends DadosAplicacao {
@@ -23,6 +24,10 @@ export interface AppState extends DadosAplicacao {
   registrarEntrada: (dados: EntradaDados) => Promise<boolean>
   registrarSaida: (dados: SaidaDados) => Promise<boolean>
   registrarTransferencia: (dados: TransferenciaDados) => Promise<boolean>
+  salvarMedicamento: (adminId: number, dados: MedicamentoCadastro, id?: number) => Promise<boolean>
+  salvarUnidade: (adminId: number, dados: UnidadeCadastro, id?: number) => Promise<boolean>
+  salvarUsuario: (adminId: number, dados: UsuarioCadastro, id?: number) => Promise<boolean>
+  corrigirValidadeLote: (adminId: number, loteId: number, dataValidade: string) => Promise<boolean>
   limparErroOperacao: () => void
 }
 
@@ -89,6 +94,22 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
       registrarTransferencia: (dados) => operar(() => {
         if (!servico.registrarTransferencia) throw new Error('Registro de transferência indisponível.')
         return servico.registrarTransferencia(dados)
+      }),
+      salvarMedicamento: (adminId, dados, id) => operar(() => {
+        if (!servico.salvarMedicamento) throw new Error('Cadastro de medicamentos indisponível.')
+        return servico.salvarMedicamento(adminId, dados, id)
+      }),
+      salvarUnidade: (adminId, dados, id) => operar(() => {
+        if (!servico.salvarUnidade) throw new Error('Cadastro de unidades indisponível.')
+        return servico.salvarUnidade(adminId, dados, id)
+      }),
+      salvarUsuario: (adminId, dados, id) => operar(() => {
+        if (!servico.salvarUsuario) throw new Error('Cadastro de usuários indisponível.')
+        return servico.salvarUsuario(adminId, dados, id)
+      }),
+      corrigirValidadeLote: (adminId, loteId, dataValidade) => operar(() => {
+        if (!servico.corrigirValidadeLote) throw new Error('Correção de lote indisponível.')
+        return servico.corrigirValidadeLote(adminId, loteId, dataValidade)
       }),
       limparErroOperacao: () => set({ operacaoErro: null }),
     }
