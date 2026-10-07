@@ -2,8 +2,9 @@ import { create } from 'zustand'
 import { ZodError } from 'zod'
 import { mockApi } from '../services/mockApi.ts'
 import type { EntradaDados, SaidaDados, TransferenciaDados } from '../services/movimentacaoSchema.ts'
-import type { SugestaoRedistribuicao } from '../types/index.ts'
 import { gerarAlertas, type AlertaAtual } from '../utils/alertas.ts'
+import { agregarEstoque } from '../utils/estoque.ts'
+import { gerarSugestoesRedistribuicao, type SugestaoDetalhada } from '../utils/redistribuicao.ts'
 
 type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida' | 'registrarTransferencia'>>
 type DadosAplicacao = Awaited<ReturnType<ServicoAplicacao['getDadosAplicacao']>>
@@ -11,7 +12,7 @@ type DadosAplicacao = Awaited<ReturnType<ServicoAplicacao['getDadosAplicacao']>>
 export interface AppState extends DadosAplicacao {
   // null significa não carregado; [] significa dados carregados sem alertas.
   alertas: AlertaAtual[] | null
-  sugestoes: SugestaoRedistribuicao[] | null
+  sugestoes: SugestaoDetalhada[] | null
   carregando: boolean
   dadosCarregados: boolean
   erro: string | null
@@ -38,7 +39,7 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
       emAndamento = Promise.resolve().then(async () => {
         try {
           const dados = await servico.getDadosAplicacao()
-          set({ ...dados, dadosCarregados: true, erro: null, alertas: gerarAlertas(dados), sugestoes: null })
+          set({ ...dados, dadosCarregados: true, erro: null, alertas: gerarAlertas(dados), sugestoes: gerarSugestoesRedistribuicao({ ...dados, estoque: agregarEstoque(dados.lotes) }) })
         } catch {
           // Mantém o último conjunto válido em caso de falha ao atualizar.
           set({ erro: 'Não foi possível carregar os dados locais. Os registros existentes foram preservados.' })
@@ -58,7 +59,7 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
       set({ operacaoCarregando: true, operacaoErro: null })
       try {
         const dados = await executar()
-        set({ ...dados, dadosCarregados: true, alertas: gerarAlertas(dados), sugestoes: null, erro: null })
+        set({ ...dados, dadosCarregados: true, alertas: gerarAlertas(dados), sugestoes: gerarSugestoesRedistribuicao({ ...dados, estoque: agregarEstoque(dados.lotes) }), erro: null })
         return true
       } catch (error) {
         const mensagem = error instanceof ZodError ? error.issues[0]?.message : error instanceof Error ? error.message : null

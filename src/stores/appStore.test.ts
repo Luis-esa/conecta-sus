@@ -4,6 +4,7 @@ import { criarMockApi } from '../services/mockApi.ts'
 import { CHAVES_DADOS, type Armazenamento } from '../services/persistencia.ts'
 import { criarAppStore } from './appStore.ts'
 import { selecionarEstoque } from './appSelectors.ts'
+import { format } from 'date-fns'
 
 class Memoria implements Armazenamento {
   dados = new Map<string, string>()
@@ -43,7 +44,7 @@ test('inicialização concorrente compartilha leitura, publica loading e não re
   assert.equal(store.getState().lotes.length, 23)
   assert.equal(store.getState().movimentacoes.length, 80)
   assert.ok(store.getState().alertas && store.getState().alertas!.length > 0)
-  assert.equal(store.getState().sugestoes, null)
+  assert.ok(store.getState().sugestoes && store.getState().sugestoes!.length > 0)
   assert.equal(estados[0], true)
   assert.equal(estados.at(-1), false)
   cancelar()
@@ -116,4 +117,23 @@ test('base persistida vazia é carregada com sucesso e selector recalcula após 
   assert.deepEqual(selecionarEstoque(store.getState()), [])
   assert.deepEqual(store.getState().alertas, [])
   assert.notEqual(selecionarEstoque(store.getState()), anterior)
+})
+
+test('sugestões acompanham entrada, saída e transferência, sem transferir automaticamente', async () => {
+  const storage = new Memoria()
+  const store = criarAppStore(criarMockApi(() => storage))
+  await store.getState().inicializar()
+  const antes = store.getState().sugestoes!.find((item) => item.medicamentoId === 1 && item.destinoId === 5)!
+  const loteDestino = store.getState().lotes.find((item) => item.id === 22)!
+  const data = format(new Date(), 'yyyy-MM-dd')
+  const movimentosAntes = store.getState().movimentacoes.length
+  assert.ok(antes)
+
+  assert.equal(await store.getState().registrarEntrada({ medicamentoId: 1, unidadeId: 5, loteId: 22, numeroLote: loteDestino.numero, dataValidade: loteDestino.dataValidade, quantidade: 100, origem: 'Teste', data, usuarioId: 2 }), true)
+  assert.equal(store.getState().sugestoes!.some((item) => item.medicamentoId === 1 && item.destinoId === 5), false)
+  assert.equal(await store.getState().registrarSaida({ medicamentoId: 1, unidadeId: 5, loteId: 22, quantidade: 100, destinoMotivo: 'Teste', data, usuarioId: 2 }), true)
+  assert.equal(store.getState().sugestoes!.find((item) => item.medicamentoId === 1 && item.destinoId === 5)?.quantidadeSugerida, antes.quantidadeSugerida)
+  assert.equal(await store.getState().registrarTransferencia({ origemId: 1, destinoId: 5, medicamentoId: 1, loteId: 1, quantidade: 25, usuarioId: 2 }), true)
+  assert.equal(store.getState().sugestoes!.find((item) => item.medicamentoId === 1 && item.destinoId === 5)?.estoqueDestino, antes.estoqueDestino + 25)
+  assert.equal(store.getState().movimentacoes.length, movimentosAntes + 5)
 })

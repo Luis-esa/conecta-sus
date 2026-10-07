@@ -27,7 +27,7 @@ test('limites de estoque distinguem crítico, baixo e normal', () => {
 
 test('dashboard municipal deriva indicadores, unidades, alertas, gráfico e histórico do seed', () => {
   const resumo = calcularDashboard(dados, admin, agora)
-  assert.deepEqual(resumo.indicadores, { unidades: 5, medicamentos: 20, criticos: 2, baixos: 1, vencimentos: 1, possibilidadesRedistribuicao: 1 })
+  assert.deepEqual(resumo.indicadores, { unidades: 5, medicamentos: 20, criticos: 2, baixos: 1, vencimentos: 1, possibilidadesRedistribuicao: 3 })
   assert.deepEqual(resumo.distribuicao.map((item) => item.quantidade), [19, 1, 2])
   assert.equal(resumo.unidades.find((item) => item.id === 3)?.status, 'CRITICO')
   assert.equal(resumo.unidades.find((item) => item.id === 4)?.vencimentos, 1)

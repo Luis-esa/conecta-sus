@@ -14,6 +14,7 @@ const Lotes = lazy(() => import('@/pages/Lotes'))
 const Movimentacoes = lazy(() => import('@/pages/Movimentacoes'))
 const Transferencias = lazy(() => import('@/pages/Transferencias'))
 const Alertas = lazy(() => import('@/pages/Alertas'))
+const Redistribuicao = lazy(() => import('@/pages/Redistribuicao'))
 const ModulePlaceholder = lazy(() => import('@/pages/ModulePlaceholder'))
 
 const paginasOperacionais: Record<string, React.ReactNode> = {
@@ -24,6 +25,7 @@ const paginasOperacionais: Record<string, React.ReactNode> = {
   '/movimentacoes': <Movimentacoes />,
   '/transferencias': <Transferencias />,
   '/alertas': <Alertas />,
+  '/redistribuicao': <Redistribuicao />,
 }
 
 export default function AppRoutes() {

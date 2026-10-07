@@ -1,8 +1,8 @@
 import type { Role, Usuario } from '../types/index.ts'
 
 const rotasPorPerfil: Record<Role, readonly string[]> = {
-  ADMIN: ['/dashboard', '/estoque', '/medicamentos', '/lotes', '/movimentacoes', '/transferencias', '/alertas', '/relatorios', '/unidades', '/usuarios', '/historico'],
-  GESTOR: ['/dashboard', '/estoque', '/medicamentos', '/lotes', '/movimentacoes', '/transferencias', '/alertas', '/relatorios'],
+  ADMIN: ['/dashboard', '/estoque', '/medicamentos', '/lotes', '/movimentacoes', '/transferencias', '/alertas', '/redistribuicao', '/relatorios', '/unidades', '/usuarios', '/historico'],
+  GESTOR: ['/dashboard', '/estoque', '/medicamentos', '/lotes', '/movimentacoes', '/transferencias', '/alertas', '/redistribuicao', '/relatorios'],
   UBS: ['/dashboard', '/estoque', '/lotes', '/movimentacoes', '/transferencias', '/alertas', '/historico'],
 }
 

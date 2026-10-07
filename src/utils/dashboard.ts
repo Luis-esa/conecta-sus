@@ -3,6 +3,7 @@ import type { Estoque, Lote, Medicamento, Movimentacao, Unidade, Usuario } from 
 import { filtrarDadosDaUnidade } from './escopo.ts'
 import { classificarEstoque } from './estoque.ts'
 import { exigeAtencaoValidade } from './validade.ts'
+import { gerarSugestoesRedistribuicao } from './redistribuicao.ts'
 
 export interface DadosDashboard {
   unidades: readonly Unidade[]
@@ -96,11 +97,7 @@ export function calcularDashboard(dados: DadosDashboard, usuario: Usuario, agora
         : unidadesPorId.get((item.tipo === 'ENTRADA' ? item.destinoId : item.origemId) ?? -1)?.nome ?? 'Unidade',
     }))
 
-  // Prévia municipal: conta necessidades com ao menos uma origem excedente; não cria sugestões nem transferências.
-  const possibilidadesRedistribuicao = usuario.role === 'UBS' ? null : situacoes.filter((destino) => {
-    const minimo = medicamentosPorId.get(destino.medicamentoId)?.estoqueMinimo ?? 0
-    return destino.quantidade < minimo && situacoes.some((origem) => origem.medicamentoId === destino.medicamentoId && origem.unidadeId !== destino.unidadeId && origem.quantidade > minimo * 2)
-  }).length
+  const possibilidadesRedistribuicao = usuario.role === 'UBS' ? null : gerarSugestoesRedistribuicao(dados).length
 
   return {
     indicadores: {
