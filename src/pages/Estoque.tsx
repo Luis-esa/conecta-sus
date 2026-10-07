@@ -20,7 +20,7 @@ export default function Estoque() {
 
   return <ConsultaEstado carregado={dadosCarregados} erro={erro}>
     <section className="space-y-5" aria-label="Consulta de estoque">
-      <p className="text-sm leading-6 text-muted-foreground">{ubs ? `Saldos e lotes de ${consultas?.unidades[0]?.nome ?? 'sua unidade'}.` : 'Saldos por medicamento e unidade, calculados a partir dos lotes cadastrados.'}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm leading-6 text-muted-foreground">{ubs ? `Saldos e lotes de ${consultas?.unidades[0]?.nome ?? 'sua unidade'}.` : 'Saldos por medicamento e unidade, calculados a partir dos lotes cadastrados.'}</p><div className="flex gap-2"><Button asChild size="sm"><Link to="/movimentacoes?operacao=ENTRADA">Registrar entrada</Link></Button><Button asChild size="sm" variant="outline"><Link to="/movimentacoes?operacao=SAIDA">Registrar saída</Link></Button></div></div>
       <div className="rounded-xl border bg-white p-4 sm:p-5">
         <div className={`grid gap-4 sm:grid-cols-2 ${ubs ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
           <SearchField value={filtros.busca} onChange={(valor) => alterar('busca', valor)} placeholder="Nome, princípio ativo, código ou lote" />

@@ -44,3 +44,22 @@ export function carregarDados(storage: Armazenamento, agora = new Date()): Dados
     throw new Error('Dados locais inválidos. Os registros foram preservados; não foi feita reinicialização automática.', { cause })
   }
 }
+
+/** Valida o conjunto inteiro e grava lote/histórico; restaura a versão anterior se a segunda escrita falhar. */
+export function salvarOperacao(storage: Armazenamento, dados: DadosPersistidos): DadosPersistidos {
+  const validos = dadosSchema.parse(dados)
+  const chaves = [CHAVES_DADOS.lotes, CHAVES_DADOS.movimentacoes]
+  const anteriores = chaves.map((chave) => storage.getItem(chave))
+  if (anteriores.some((valor) => valor === null)) throw new Error('Dados locais incompletos. A operação não foi gravada.')
+  let gravadas = 0
+  try {
+    storage.setItem(chaves[0], JSON.stringify(validos.lotes))
+    gravadas++
+    storage.setItem(chaves[1], JSON.stringify(validos.movimentacoes))
+    gravadas++
+  } catch (cause) {
+    for (let i = gravadas - 1; i >= 0; i--) storage.setItem(chaves[i], anteriores[i]!)
+    throw new Error('Não foi possível salvar a movimentação neste navegador.', { cause })
+  }
+  return validos
+}

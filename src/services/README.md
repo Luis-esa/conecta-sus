@@ -8,6 +8,8 @@ Estoque é calculado pela soma dos lotes, sem gravar `conectasus_estoque`. Combi
 
 `authApi.ts` consulta `getUsuarios()` do Mock Service, valida conta ativa e senha de demonstração e grava somente `{ usuarioId }` na chave `conectasus_session`. Na restauração, revalida o usuário contra os mocks persistidos; uma sessão inválida é removida. `logout()` remove a chave de sessão sem alterar os dados de domínio.
 
-O bootstrap em `main.tsx` inicializa o `appStore`, que consulta o serviço e representa loading, conclusão e erro para feedback no React. Páginas não importam mocks nem acessam localStorage. Futuras operações de entrada, saída e transferência serão métodos deste serviço, com validação e gravação consistente por esta camada; não existem stubs que aparentem sucesso.
+`registrarEntrada()` e `registrarSaida()` validam os dados com `movimentacaoSchema.ts` e as referências/permissões contra os registros persistidos. Entrada acrescenta saldo ao lote existente ou cria um novo; saída debita exclusivamente o lote selecionado e rejeita quantidade acima do saldo. `salvarOperacao()` valida o conjunto e grava lotes e histórico, restaurando o lote anterior se a escrita do histórico falhar. O estoque permanece derivado dos lotes. A origem textual da entrada fica no campo `motivo` da movimentação. Transferências serão implementadas na etapa própria.
+
+O bootstrap em `main.tsx` inicializa o `appStore`, que consulta o serviço e representa loading, conclusão e erro para feedback no React. Páginas não importam mocks nem acessam localStorage.
 
 Os testes usam armazenamento isolado em memória e o executor nativo do Node, sem modificar dados do navegador. Este protótipo ainda não oferece transações entre abas, migração de versões ou recuperação automática de dados corrompidos.

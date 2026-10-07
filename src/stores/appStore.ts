@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+import { ZodError } from 'zod'
 import { mockApi } from '../services/mockApi.ts'
+import type { EntradaDados, SaidaDados } from '../services/movimentacaoSchema.ts'
 import type { Alerta, SugestaoRedistribuicao } from '../types/index.ts'
 
-type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'>
+type ServicoAplicacao = Pick<typeof mockApi, 'getDadosAplicacao'> & Partial<Pick<typeof mockApi, 'registrarEntrada' | 'registrarSaida'>>
 type DadosAplicacao = Awaited<ReturnType<ServicoAplicacao['getDadosAplicacao']>>
 
 export interface AppState extends DadosAplicacao {
@@ -12,13 +14,19 @@ export interface AppState extends DadosAplicacao {
   carregando: boolean
   dadosCarregados: boolean
   erro: string | null
+  operacaoCarregando: boolean
+  operacaoErro: string | null
   inicializar: () => Promise<void>
   recarregar: () => Promise<void>
+  registrarEntrada: (dados: EntradaDados) => Promise<boolean>
+  registrarSaida: (dados: SaidaDados) => Promise<boolean>
+  limparErroOperacao: () => void
 }
 
 /** A fábrica permite validar novas sessões sem compartilhar estado entre testes. */
 export function criarAppStore(servico: ServicoAplicacao = mockApi) {
   let emAndamento: Promise<void> | null = null
+  let operacaoEmAndamento = false
 
   return create<AppState>()((set, get) => {
     const carregar = (): Promise<void> => {
@@ -41,12 +49,41 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
       return emAndamento
     }
 
+    const operar = async (executar: () => Promise<DadosAplicacao>): Promise<boolean> => {
+      if (operacaoEmAndamento) return false
+      operacaoEmAndamento = true
+      if (emAndamento) await emAndamento
+      set({ operacaoCarregando: true, operacaoErro: null })
+      try {
+        const dados = await executar()
+        set({ ...dados, dadosCarregados: true, alertas: null, sugestoes: null, erro: null })
+        return true
+      } catch (error) {
+        const mensagem = error instanceof ZodError ? error.issues[0]?.message : error instanceof Error ? error.message : null
+        set({ operacaoErro: mensagem || 'Não foi possível registrar a movimentação.' })
+        return false
+      } finally {
+        operacaoEmAndamento = false
+        set({ operacaoCarregando: false })
+      }
+    }
+
     return {
       unidades: [], medicamentos: [], lotes: [], movimentacoes: [],
       alertas: null, sugestoes: null,
       carregando: false, dadosCarregados: false, erro: null,
+      operacaoCarregando: false, operacaoErro: null,
       inicializar: () => emAndamento ?? (get().dadosCarregados ? Promise.resolve() : carregar()),
       recarregar: carregar,
+      registrarEntrada: (dados) => operar(() => {
+        if (!servico.registrarEntrada) throw new Error('Registro de entrada indisponível.')
+        return servico.registrarEntrada(dados)
+      }),
+      registrarSaida: (dados) => operar(() => {
+        if (!servico.registrarSaida) throw new Error('Registro de saída indisponível.')
+        return servico.registrarSaida(dados)
+      }),
+      limparErroOperacao: () => set({ operacaoErro: null }),
     }
   })
 }

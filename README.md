@@ -2,14 +2,14 @@
 
 Plataforma web para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto.
 
-O projeto contém a fundação de UI, dados mockados com persistência local, estado global com Zustand, layout e autenticação simulada por perfil, sem módulos completos ou backend.
+O projeto contém UI, dados mockados com persistência local, estado global com Zustand, layout, autenticação simulada por perfil e consultas e movimentações operacionais, sem backend.
 
 ## Stack atual
 
 React, TypeScript e Vite, com ESLint para análise estática.
 
 UI: Tailwind CSS, shadcn/ui, Lucide React e Sonner.
-React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e o login; React Hook Form gerencia o formulário. date-fns gera datas do seed. Recharts está disponível para telas futuras.
+React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e os formulários; React Hook Form gerencia os formulários. date-fns trata datas e Recharts visualiza indicadores do dashboard.
 
 ## Base de UI
 
@@ -17,7 +17,7 @@ O Tailwind é integrado pelo plugin do Vite. As cores e tokens estão em `src/in
 
 Os componentes shadcn/ui (base Radix, estilo New York) ficam em `src/components/ui`, com configuração em `components.json` e imports pelo alias `@/`. Estão disponíveis Button, Input, Label, Card, Badge, Table, Dialog, Select, Dropdown Menu, Sheet, Tooltip e Sonner.
 
-Use `primary` para ações, `success` para normal, `warning` para atenção e `destructive` para crítico, sempre acompanhando status com texto. O provider de Tooltip e o Toaster ficam na raiz da aplicação. Formulários, gráficos e funcionalidades dos módulos serão criados nas próximas etapas.
+Use `primary` para ações, `success` para normal, `warning` para atenção e `destructive` para crítico, sempre acompanhando status com texto. O provider de Tooltip e o Toaster ficam na raiz da aplicação.
 
 ## Executar localmente
 
@@ -52,7 +52,7 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
-- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, placeholders dos demais módulos, login, acesso negado e página 404.
+- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, entradas e saídas, placeholders dos demais módulos, login, acesso negado e página 404.
 - `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
 - `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
 - `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
@@ -63,9 +63,9 @@ Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 - `hooks/`: `useConsultas` conecta as consultas ao store e ao perfil atual.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Operações de entrada, saída e transferência pertencem às próximas etapas.
+Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Transferências pertencem à próxima etapa.
 
-Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. Validações operacionais e permissões serão adicionadas aos futuros fluxos. Importe contratos com `import type { Medicamento } from '@/types'`.
+Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. As operações de estoque têm validação própria em `movimentacaoSchema.ts` e no serviço. Importe contratos com `import type { Medicamento } from '@/types'`.
 
 ## Dados locais
 
@@ -75,7 +75,7 @@ O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 m
 
 ## Layout e navegação
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos e lotes usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
+Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos, lotes e movimentações usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
 
 A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
 
@@ -101,4 +101,8 @@ O cálculo do painel está em `src/utils/dashboard.ts`, usando a classificação
 
 As linhas e filtros são funções puras de `src/utils/consultas.ts`; as páginas recebem dados pelo `useConsultas`, sem consultar mocks ou localStorage diretamente. Para UBS, estoque e lotes mostram somente a unidade vinculada. A rota de medicamentos segue a matriz de permissões vigente e não está disponível para UBS. Cadastro e edição administrativos ficam para a etapa própria.
 
-`npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização e preservação. Não é necessário instalar dependências de teste.
+## Entradas e saídas
+
+`/movimentacoes` registra entrada em lote existente ou novo e saída de um lote com saldo. Os formulários usam React Hook Form e Zod; o serviço confirma medicamento, unidade, perfil, lote e quantidade antes de gravar. A saída não aceita quantidade maior que o saldo do lote, zero ou negativa. O estoque é recalculado dos lotes, e as movimentações aparecem no histórico recente e nos dados derivados do dashboard. A origem textual da entrada é registrada no motivo da movimentação, conforme o contrato atual. A gravação persiste lote e histórico em `localStorage`, com restauração do lote anterior caso a escrita do histórico falhe.
+
+`npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização, preservação e entradas e saídas. Não é necessário instalar dependências de teste.
