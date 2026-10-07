@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, LogOut, Menu, UserRound } from 'lucide-react'
+import { LogOut, Menu, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useAuthStore } from '@/stores/authStore'
@@ -7,6 +7,7 @@ import { useAppStore } from '@/stores/appStore'
 import { selecionarUnidades } from '@/stores/appSelectors'
 import { nomePerfil } from '@/routes/permissoes'
 import AppSidebar from './AppSidebar'
+import NotificationPanel from './NotificationPanel'
 
 function MobileNavigation() {
   const [open, setOpen] = useState(false)
@@ -48,7 +49,7 @@ export default function AppHeader({ title, group, pathname }: { title: string; g
         </div>
       </div>
       <div className="ml-auto flex items-center gap-2 sm:gap-4">
-        <Button variant="ghost" size="icon" disabled aria-label="Notificações — disponíveis em breve" title="Notificações disponíveis em breve"><Bell aria-hidden="true" /></Button>
+        <NotificationPanel />
         <div className="flex items-center gap-3 border-l pl-3 sm:pl-4" aria-label="Usuário atual">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-primary"><UserRound className="size-5" aria-hidden="true" /></span>
           <div className="hidden sm:block">
