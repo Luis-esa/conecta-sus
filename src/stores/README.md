@@ -8,7 +8,7 @@ Actions:
 - `inicializar()`: carrega uma vez após sucesso; chamadas simultâneas compartilham a mesma Promise.
 - `recarregar()`: consulta novamente o serviço e substitui as coleções juntas. Mantém os últimos dados válidos se houver erro. A falha fica em `erro`, sem rejeição não tratada; uma nova tentativa é explícita.
 
-O bootstrap em `main.tsx` chama `inicializar()` fora do ciclo de render. `Inicio.tsx` assina apenas loading, erro, conclusão e a action de nova tentativa. Não há efeito dependente do estado que provoque recargas em loop.
+O bootstrap em `main.tsx` chama `inicializar()` fora do ciclo de render. `AppDataStatus.tsx`, no layout, assina apenas loading, erro e a action de nova tentativa. Não há efeito dependente do estado que provoque recargas em loop.
 
 `appSelectors.ts` expõe seletores de coleções, loading, erro, conclusão e recarga. `selecionarEstoque` reutiliza `agregarEstoque` e memoriza o resultado por referência dos lotes, garantindo snapshots estáveis no React. Estoque não é uma segunda coleção editável. Consumidores devem tratar coleções e resultados dos seletores como somente leitura.
 

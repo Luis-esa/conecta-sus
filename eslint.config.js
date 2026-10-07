@@ -5,13 +5,14 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'node_modules/**', '.kilo/worktrees/**'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',
       globals: globals.browser,
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
     },
     plugins: {
       'react-hooks': reactHooks,
