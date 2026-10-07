@@ -1,15 +1,8 @@
-import { differenceInCalendarDays, format, parseISO } from 'date-fns'
-import type { Estoque, Lote, Medicamento, Movimentacao, StatusEstoque, Unidade, Usuario } from '../types/index.ts'
+import { format, parseISO } from 'date-fns'
+import type { Estoque, Lote, Medicamento, Movimentacao, Unidade, Usuario } from '../types/index.ts'
 import { filtrarDadosDaUnidade } from './escopo.ts'
-
-export const DIAS_ALERTA_VENCIMENTO = 90
-export const FRACAO_ESTOQUE_CRITICO = 0.3
-
-export function classificarEstoque(quantidade: number, minimo: number): StatusEstoque {
-  if (quantidade <= minimo * FRACAO_ESTOQUE_CRITICO) return 'CRITICO'
-  if (quantidade <= minimo) return 'BAIXO'
-  return 'NORMAL'
-}
+import { classificarEstoque } from './estoque.ts'
+import { exigeAtencaoValidade } from './validade.ts'
 
 export interface DadosDashboard {
   unidades: readonly Unidade[]
@@ -60,7 +53,7 @@ export function calcularDashboard(dados: DadosDashboard, usuario: Usuario, agora
   // Uma situação de vencimento por medicamento/unidade, usando o lote mais próximo.
   const vencimentos = new Map<string, Lote>()
   for (const lote of visiveis.lotes) {
-    if (lote.quantidade <= 0 || differenceInCalendarDays(parseISO(lote.dataValidade), agora) > DIAS_ALERTA_VENCIMENTO) continue
+    if (lote.quantidade <= 0 || !exigeAtencaoValidade(lote.dataValidade, agora)) continue
     const chave = `${lote.unidadeId}:${lote.medicamentoId}`
     const anterior = vencimentos.get(chave)
     if (!anterior || lote.dataValidade < anterior.dataValidade) vencimentos.set(chave, lote)

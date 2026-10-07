@@ -8,7 +8,17 @@ import { navigation } from './navigation'
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Login = lazy(() => import('@/pages/Login'))
+const Estoque = lazy(() => import('@/pages/Estoque'))
+const Medicamentos = lazy(() => import('@/pages/Medicamentos'))
+const Lotes = lazy(() => import('@/pages/Lotes'))
 const ModulePlaceholder = lazy(() => import('@/pages/ModulePlaceholder'))
+
+const paginasOperacionais: Record<string, React.ReactNode> = {
+  '/dashboard': <Dashboard />,
+  '/estoque': <Estoque />,
+  '/medicamentos': <Medicamentos />,
+  '/lotes': <Lotes />,
+}
 
 export default function AppRoutes() {
   return (
@@ -17,7 +27,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {navigation.map((page) => <Route key={page.path} path={page.path} element={<PermissionRoute path={page.path}><Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Carregando página…</p>}>{page.path === '/dashboard' ? <Dashboard /> : <ModulePlaceholder page={page} />}</Suspense></PermissionRoute>} />)}
+          {navigation.map((page) => <Route key={page.path} path={page.path} element={<PermissionRoute path={page.path}><Suspense fallback={<p role="status" className="text-sm text-muted-foreground">Carregando página…</p>}>{paginasOperacionais[page.path] ?? <ModulePlaceholder page={page} />}</Suspense></PermissionRoute>} />)}
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

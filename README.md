@@ -52,15 +52,15 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
-- `pages/`: dashboard dinâmico, placeholders dos demais módulos, login, acesso negado e página 404.
+- `pages/`: dashboard, consultas de estoque, medicamentos e lotes, placeholders dos demais módulos, login, acesso negado e página 404.
 - `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
 - `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
 - `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
 - `services/`: Mock Service e persistência local, isolados da UI.
 - `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
 - `types/`: contratos TypeScript do domínio, sem dependências de UI.
-- `utils/`: agregação do estoque, cálculos do dashboard e recorte por unidade.
-- `hooks/`: futuros hooks reutilizáveis de interface.
+- `utils/`: agregação/classificação do estoque, validade, consultas, cálculos do dashboard e recorte por unidade.
+- `hooks/`: `useConsultas` conecta as consultas ao store e ao perfil atual.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
 Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Operações de entrada, saída e transferência pertencem às próximas etapas.
@@ -75,7 +75,7 @@ O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 m
 
 ## Layout e navegação
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. O dashboard usa dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
+Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Dashboard, estoque, medicamentos e lotes usam dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
 
 A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
 
@@ -93,6 +93,12 @@ ADMIN acessa todas as áreas, GESTOR acessa a visão municipal sem administraç�
 
 `/dashboard` apresenta indicadores calculados de unidades, medicamentos, situações de estoque crítico e baixo, vencimentos e possibilidades de redistribuição. O gráfico usa Recharts para mostrar a distribuição dos saldos por situação; a tabela resume cada unidade. Pontos de atenção e movimentações recentes são derivados dos lotes e do histórico persistidos. Não há valores de indicadores fixos na UI.
 
-O cálculo está em `src/utils/dashboard.ts`: crítico até 30% do mínimo, baixo acima do crítico até o mínimo, e vencimento de lote com saldo em até 90 dias. O contador de redistribuição é uma prévia municipal de necessidades com ao menos uma origem acima de duas vezes o mínimo; não cria sugestão persistida nem executa transferência. ADMIN e GESTOR veem a rede; UBS recebe apenas o recorte da própria unidade. O dashboard mostra carregamento, vazio e erro conforme o estado do store.
+O cálculo do painel está em `src/utils/dashboard.ts`, usando a classificação de `src/utils/estoque.ts` e a janela de vencimento de `src/utils/validade.ts`. O contador de redistribuição é uma prévia municipal de necessidades com ao menos uma origem acima de duas vezes o mínimo; não cria sugestão persistida nem executa transferência. ADMIN e GESTOR veem a rede; UBS recebe apenas o recorte da própria unidade. O dashboard mostra carregamento, vazio e erro conforme o estado do store.
+
+## Consultas operacionais
+
+`/estoque` mostra o saldo agregado por medicamento/unidade, mínimo, quantidade de lotes, validade mais próxima com saldo e status. A busca cobre nome, princípio ativo, código e número do lote; filtros de unidade, status e validade podem ser combinados. O link de lotes abre `/lotes` com medicamento e unidade selecionados. `/lotes` mostra cada lote, quantidade, entrada e validade; `/medicamentos` mostra os campos do catálogo, limites e situação ativa/inativa. As tabelas permitem rolagem horizontal em telas menores.
+
+As linhas e filtros são funções puras de `src/utils/consultas.ts`; as páginas recebem dados pelo `useConsultas`, sem consultar mocks ou localStorage diretamente. Para UBS, estoque e lotes mostram somente a unidade vinculada. A rota de medicamentos segue a matriz de permissões vigente e não está disponível para UBS. Cadastro e edição administrativos ficam para a etapa própria.
 
 `npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização e preservação. Não é necessário instalar dependências de teste.

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { criarDadosIniciais } from '../data/seed.ts'
-import { agregarEstoque } from './estoque.ts'
-import { calcularDashboard, classificarEstoque } from './dashboard.ts'
+import { agregarEstoque, classificarEstoque } from './estoque.ts'
+import { calcularDashboard } from './dashboard.ts'
 
 const agora = new Date(2026, 9, 6, 12)
 const seed = criarDadosIniciais(agora)

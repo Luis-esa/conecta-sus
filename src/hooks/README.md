@@ -1,3 +1,3 @@
 # Hooks
 
-Hooks React reutilizáveis serão adicionados quando houver uso concreto. Poderão compor acesso aos stores e comportamento de interface, sem acessar mocks ou persistência diretamente. Tipos e regras de domínio permanecerão independentes desta camada.
+`useConsultas.ts` lê usuário e coleções do Zustand e monta, com memoização, as consultas de estoque, medicamentos e lotes. O recorte por perfil e as regras de classificação ficam nos utilitários puros, não no hook nem nos componentes.

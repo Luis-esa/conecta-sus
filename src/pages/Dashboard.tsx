@@ -8,6 +8,8 @@ import { useAppStore } from '@/stores/appStore'
 import { selecionarDadosCarregados, selecionarErro, selecionarEstoque, selecionarLotes, selecionarMedicamentos, selecionarMovimentacoes, selecionarUnidades } from '@/stores/appSelectors'
 import { useAuthStore } from '@/stores/authStore'
 import { calcularDashboard } from '@/utils/dashboard'
+import { FRACAO_ESTOQUE_CRITICO } from '@/utils/estoque'
+import { DIAS_ALERTA_VENCIMENTO } from '@/utils/validade'
 
 export default function Dashboard() {
   const usuario = useAuthStore((state) => state.usuarioAtual)
@@ -39,9 +41,9 @@ export default function Dashboard() {
       <section aria-label="Indicadores principais" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard titulo={visaoUbs ? 'Sua unidade' : 'Unidades cadastradas'} valor={indicadores.unidades} detalhe={visaoUbs ? 'Unidade vinculada à sua conta' : 'Unidades da rede municipal'} icone={Building2} />
         <StatCard titulo="Medicamentos" valor={indicadores.medicamentos} detalhe={visaoUbs ? 'Com lotes na sua unidade' : 'Ativos no catálogo municipal'} icone={Pill} />
-        <StatCard titulo="Estoque crítico" valor={indicadores.criticos} detalhe="Até 30% do mínimo definido" icone={CircleAlert} tom="vermelho" />
+        <StatCard titulo="Estoque crítico" valor={indicadores.criticos} detalhe={`Até ${FRACAO_ESTOQUE_CRITICO * 100}% do mínimo definido`} icone={CircleAlert} tom="vermelho" />
         <StatCard titulo="Estoque baixo" valor={indicadores.baixos} detalhe="Acima do crítico e até o mínimo" icone={Boxes} tom="amarelo" />
-        <StatCard titulo="Próximos do vencimento" valor={indicadores.vencimentos} detalhe="Medicamentos por unidade com lote vencido ou em até 90 dias" icone={CalendarClock} tom="amarelo" />
+        <StatCard titulo="Próximos do vencimento" valor={indicadores.vencimentos} detalhe={`Medicamentos por unidade com lote vencido ou em até ${DIAS_ALERTA_VENCIMENTO} dias`} icone={CalendarClock} tom="amarelo" />
         {indicadores.possibilidadesRedistribuicao !== null && <StatCard titulo="Possíveis redistribuições" valor={indicadores.possibilidadesRedistribuicao} detalhe="Necessidades com outra unidade acima de 2× o mínimo" icone={ArrowLeftRight} tom="verde" />}
       </section>
 

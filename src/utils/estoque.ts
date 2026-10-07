@@ -1,4 +1,12 @@
-import type { Estoque, Lote } from '../types/index.ts'
+import type { Estoque, Lote, StatusEstoque } from '../types/index.ts'
+
+export const FRACAO_ESTOQUE_CRITICO = 0.3
+
+export function classificarEstoque(quantidade: number, minimo: number): StatusEstoque {
+  if (quantidade <= minimo * FRACAO_ESTOQUE_CRITICO) return 'CRITICO'
+  if (quantidade <= minimo) return 'BAIXO'
+  return 'NORMAL'
+}
 
 /** A soma dos lotes é a única fonte de verdade para o saldo. */
 export function agregarEstoque(lotes: readonly Lote[]): Estoque[] {
