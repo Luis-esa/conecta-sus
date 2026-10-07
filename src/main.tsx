@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { useAppStore } from '@/stores/appStore'
+import { useAuthStore } from '@/stores/authStore'
 import App from './App'
 import './index.css'
 
@@ -20,3 +21,4 @@ createRoot(document.getElementById('root')!).render(
 
 // Uma inicialização fora do ciclo de render; o store também deduplica chamadas.
 void useAppStore.getState().inicializar()
+void useAuthStore.getState().inicializar()

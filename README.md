@@ -2,14 +2,14 @@
 
 Plataforma web para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto.
 
-O projeto contém a aplicação inicial, a fundação de UI, a camada de dados mockados com persistência local e o estado global com Zustand, sem módulos completos ou backend.
+O projeto contém a fundação de UI, dados mockados com persistência local, estado global com Zustand, layout e autenticação simulada por perfil, sem módulos completos ou backend.
 
 ## Stack atual
 
 React, TypeScript e Vite, com ESLint para análise estática.
 
 UI: Tailwind CSS, shadcn/ui, Lucide React e Sonner.
-React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e date-fns gera datas do seed. React Hook Form com resolvers e Recharts estão disponíveis para as próximas telas.
+React Router compõe as rotas; Zustand conecta o estado ao React; Zod valida os dados locais e o login; React Hook Form gerencia o formulário. date-fns gera datas do seed. Recharts está disponível para telas futuras.
 
 ## Base de UI
 
@@ -52,10 +52,10 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
-- `pages/`: placeholders dos módulos, login em preparação e página 404.
-- `routes/`: rotas em `AppRoutes.tsx` e metadados de navegação em `navigation.ts`, com BrowserRouter na raiz.
+- `pages/`: placeholders dos módulos, login, acesso negado e página 404.
+- `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
 - `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
-- `stores/`: `appStore`, actions de inicialização/recarga e seletores para consumo pelo React.
+- `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
 - `services/`: Mock Service e persistência local, isolados da UI.
 - `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
 - `types/`: contratos TypeScript do domínio, sem dependências de UI.
@@ -63,7 +63,7 @@ Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 - `hooks/`: futuros hooks reutilizáveis de interface.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
-Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Não há autenticação nem operações de entrada, saída e transferência nesta etapa.
+Os diretórios ainda sem implementação possuem apenas notas de responsabilidade. Operações de entrada, saída e transferência pertencem às próximas etapas.
 
 Os tipos em `src/types/index.ts` preservam os campos e opcionais da seção 6 do `PROJECT_CONTEXT.md`: IDs numéricos e datas como strings. Tipos não validam dados em execução; `dadosSchema.ts` valida o formato e as referências da base local. Validações operacionais e permissões serão adicionadas aos futuros fluxos. Importe contratos com `import type { Medicamento } from '@/types'`.
 
@@ -75,12 +75,18 @@ O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 m
 
 ## Layout e navegação
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Todas as áreas são placeholders nesta etapa. Login fica fora do layout e oferece acesso à navegação demonstrativa, sem autenticação.
+Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Todas as áreas de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
 
-A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header reserva espaço para usuário, unidade/perfil, notificações e saída futura. Consulte `src/layouts/README.md`.
+A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
 
 O Vite permite abrir e recarregar URLs diretamente em dev e preview. Uma futura hospedagem estática deve encaminhar as rotas da SPA para `index.html`. O ESLint ignora a cópia de trabalho em `.kilo/worktrees` e fixa a raiz desta configuração.
 
-O seed só é persistido quando todas as cinco coleções estão ausentes. Recarregar não sobrescreve dados nem recalcula suas datas. Dados incompletos ou inválidos são preservados e geram feedback de erro, sem reset automático. Não há autenticação nesta etapa; a sessão não é modificada. Consulte `src/services/README.md` e `src/data/README.md` para contratos e cenários.
+O seed só é persistido quando todas as cinco coleções estão ausentes. Recarregar não sobrescreve dados nem recalcula suas datas. Dados incompletos ou inválidos são preservados e geram feedback de erro, sem reset automático. Consulte `src/services/README.md` e `src/data/README.md` para contratos e cenários.
+
+## Login de demonstração
+
+Use `admin@conectasus.com`, `gestor@conectasus.com` ou `ubs01@conectasus.com`, todos com senha `123456`. O `authStore` solicita ao serviço a validação do usuário ativo dos mocks; a sessão guarda somente o ID em `conectasus_session` e é restaurada ao recarregar. Sair remove essa chave. A validação do formulário usa React Hook Form e Zod.
+
+ADMIN acessa todas as áreas, GESTOR acessa a visão municipal sem administração, e UBS acessa as operações permitidas para sua unidade. A sidebar esconde áreas não autorizadas e o acesso direto a elas mostra “Acesso não autorizado.”. `filtrarDadosDaUnidade` prepara o recorte de unidades, lotes, estoque e movimentações para as próximas telas. Essas restrições de frontend são apenas uma simulação para o protótipo.
 
 `npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização e preservação. Não é necessário instalar dependências de teste.

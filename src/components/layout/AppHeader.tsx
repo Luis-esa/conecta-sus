@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 import { Bell, LogOut, Menu, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useAuthStore } from '@/stores/authStore'
+import { useAppStore } from '@/stores/appStore'
+import { selecionarUnidades } from '@/stores/appSelectors'
+import { nomePerfil } from '@/routes/permissoes'
 import AppSidebar from './AppSidebar'
 
 function MobileNavigation() {
@@ -29,6 +33,11 @@ function MobileNavigation() {
 }
 
 export default function AppHeader({ title, group, pathname }: { title: string; group: string; pathname: string }) {
+  const usuario = useAuthStore((state) => state.usuarioAtual)
+  const logout = useAuthStore((state) => state.logout)
+  const erro = useAuthStore((state) => state.erro)
+  const unidades = useAppStore(selecionarUnidades)
+  const unidade = unidades.find((item) => item.id === usuario?.unidadeId)
   return (
     <header className="sticky top-0 z-20 flex min-h-24 flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-4 sm:px-8">
       <div className="flex min-w-0 items-center gap-3">
@@ -40,15 +49,16 @@ export default function AppHeader({ title, group, pathname }: { title: string; g
       </div>
       <div className="ml-auto flex items-center gap-2 sm:gap-4">
         <Button variant="ghost" size="icon" disabled aria-label="Notificações — disponíveis em breve" title="Notificações disponíveis em breve"><Bell aria-hidden="true" /></Button>
-        <div className="flex items-center gap-3 border-l pl-3 sm:pl-4" aria-label="Espaço do usuário">
+        <div className="flex items-center gap-3 border-l pl-3 sm:pl-4" aria-label="Usuário atual">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-primary"><UserRound className="size-5" aria-hidden="true" /></span>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium">Acesso demonstrativo</p>
-            <p className="text-xs text-muted-foreground">Perfil e unidade não definidos</p>
+            <p className="max-w-48 truncate text-sm font-medium">{usuario?.nome}</p>
+            <p className="max-w-48 truncate text-xs text-muted-foreground">{usuario ? nomePerfil[usuario.role] : ''}{unidade ? ` · ${unidade.nome}` : ''}</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" disabled aria-label="Sair — disponível em breve" title="Saída disponível após a implementação do login"><LogOut aria-hidden="true" /></Button>
+        <Button variant="ghost" size="icon" onClick={logout} aria-label="Sair" title="Sair"><LogOut aria-hidden="true" /></Button>
       </div>
+      {erro && <p role="alert" className="w-full text-right text-xs text-destructive">{erro}</p>}
     </header>
   )
 }
