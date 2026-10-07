@@ -72,7 +72,7 @@ export function criarAppStore(servico: ServicoAplicacao = mockApi) {
     }
 
     return {
-      unidades: [], medicamentos: [], lotes: [], movimentacoes: [],
+      usuarios: [], unidades: [], medicamentos: [], lotes: [], movimentacoes: [],
       alertas: null, sugestoes: null,
       carregando: false, dadosCarregados: false, erro: null,
       operacaoCarregando: false, operacaoErro: null,

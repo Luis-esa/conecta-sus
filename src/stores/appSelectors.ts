@@ -3,6 +3,7 @@ import type { Estoque, Lote } from '../types/index.ts'
 import { agregarEstoque } from '../utils/estoque.ts'
 
 export const selecionarUnidades = (state: AppState) => state.unidades
+export const selecionarUsuarios = (state: AppState) => state.usuarios
 export const selecionarMedicamentos = (state: AppState) => state.medicamentos
 export const selecionarLotes = (state: AppState) => state.lotes
 export const selecionarMovimentacoes = (state: AppState) => state.movimentacoes

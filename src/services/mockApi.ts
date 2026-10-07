@@ -24,8 +24,8 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
 
   return {
     async getDadosAplicacao() {
-      const { unidades, medicamentos, lotes, movimentacoes } = ler()
-      return { unidades, medicamentos, lotes, movimentacoes }
+      const { usuarios, unidades, medicamentos, lotes, movimentacoes } = ler()
+      return { usuarios, unidades, medicamentos, lotes, movimentacoes }
     },
     async inicializarDados(): Promise<void> { ler() },
     async getUsuarios() { return ler().usuarios },
@@ -67,7 +67,7 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
         observacao: dadosEntrada.observacao?.trim() || undefined,
       }
       const salvos = salvarOperacao(storage, { ...dados, lotes, movimentacoes: [...dados.movimentacoes, movimentacao] })
-      return { unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
+      return { usuarios: salvos.usuarios, unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
     },
     async registrarSaida(input: SaidaDados) {
       const dadosSaida = saidaSchema.parse(input)
@@ -91,7 +91,7 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
         observacao: dadosSaida.observacao?.trim() || undefined,
       }
       const salvos = salvarOperacao(storage, { ...dados, lotes, movimentacoes: [...dados.movimentacoes, movimentacao] })
-      return { unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
+      return { usuarios: salvos.usuarios, unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
     },
     async registrarTransferencia(input: TransferenciaDados) {
       const pedido = transferenciaSchema.parse(input)
@@ -131,7 +131,7 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
         { ...base, id: transferenciaId + 2, tipo: 'ENTRADA', loteId: loteDestinoId, destinoId: destino.id, transferenciaId, motivo: `Transferência de ${origem.nome}` },
       ]
       const salvos = salvarOperacao(storage, { ...dados, lotes, movimentacoes })
-      return { unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
+      return { usuarios: salvos.usuarios, unidades: salvos.unidades, medicamentos: salvos.medicamentos, lotes: salvos.lotes, movimentacoes: salvos.movimentacoes }
     },
   }
 }
