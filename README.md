@@ -52,14 +52,14 @@ No PowerShell, se a política de execução bloquear `npm.ps1`, use `npm.cmd` no
 
 Fluxo atual: `Page → Store → Service → Mock Data / localStorage`.
 
-- `pages/`: placeholders dos módulos, login, acesso negado e página 404.
+- `pages/`: dashboard dinâmico, placeholders dos demais módulos, login, acesso negado e página 404.
 - `routes/`: rotas, proteção e permissões, com BrowserRouter na raiz.
 - `layouts/`: `DashboardLayout`, com sidebar, header e conteúdo via Outlet.
 - `stores/`: `appStore` para dados de domínio e `authStore` para sessão, com seletores para consumo pelo React.
 - `services/`: Mock Service e persistência local, isolados da UI.
 - `data/`: cadastros e seed inicial tipado, acessados pelos serviços.
 - `types/`: contratos TypeScript do domínio, sem dependências de UI.
-- `utils/`: agregação do estoque; futuras regras puras e formatação.
+- `utils/`: agregação do estoque, cálculos do dashboard e recorte por unidade.
 - `hooks/`: futuros hooks reutilizáveis de interface.
 - `components/ui/` e `lib/`: componentes e utilitários visuais existentes.
 
@@ -75,7 +75,7 @@ O bootstrap inicializa 7 usuários, 5 unidades, 20 medicamentos, 23 lotes e 80 m
 
 ## Layout e navegação
 
-Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. Todas as áreas de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
+Rotas: `/login`, `/dashboard`, `/estoque`, `/medicamentos`, `/lotes`, `/movimentacoes`, `/transferencias`, `/alertas`, `/relatorios`, `/unidades`, `/usuarios` e `/historico`. A raiz redireciona para Dashboard; URLs desconhecidas exibem 404. O dashboard usa dados do store; os demais módulos de domínio continuam placeholders. Login fica fora do layout; as demais rotas exigem sessão.
 
 A sidebar usa azul institucional, com rota ativa destacada e grupos de navegação conforme o perfil. A partir de 1024 px fica fixa; abaixo disso, abre em Sheet pelo botão do header. O header mostra usuário, perfil/unidade e saída. Consulte `src/layouts/README.md`.
 
@@ -88,5 +88,11 @@ O seed só é persistido quando todas as cinco coleções estão ausentes. Recar
 Use `admin@conectasus.com`, `gestor@conectasus.com` ou `ubs01@conectasus.com`, todos com senha `123456`. O `authStore` solicita ao serviço a validação do usuário ativo dos mocks; a sessão guarda somente o ID em `conectasus_session` e é restaurada ao recarregar. Sair remove essa chave. A validação do formulário usa React Hook Form e Zod.
 
 ADMIN acessa todas as áreas, GESTOR acessa a visão municipal sem administração, e UBS acessa as operações permitidas para sua unidade. A sidebar esconde áreas não autorizadas e o acesso direto a elas mostra “Acesso não autorizado.”. `filtrarDadosDaUnidade` prepara o recorte de unidades, lotes, estoque e movimentações para as próximas telas. Essas restrições de frontend são apenas uma simulação para o protótipo.
+
+## Dashboard
+
+`/dashboard` apresenta indicadores calculados de unidades, medicamentos, situações de estoque crítico e baixo, vencimentos e possibilidades de redistribuição. O gráfico usa Recharts para mostrar a distribuição dos saldos por situação; a tabela resume cada unidade. Pontos de atenção e movimentações recentes são derivados dos lotes e do histórico persistidos. Não há valores de indicadores fixos na UI.
+
+O cálculo está em `src/utils/dashboard.ts`: crítico até 30% do mínimo, baixo acima do crítico até o mínimo, e vencimento de lote com saldo em até 90 dias. O contador de redistribuição é uma prévia municipal de necessidades com ao menos uma origem acima de duas vezes o mínimo; não cria sugestão persistida nem executa transferência. ADMIN e GESTOR veem a rede; UBS recebe apenas o recorte da própria unidade. O dashboard mostra carregamento, vazio e erro conforme o estado do store.
 
 `npm test` usa o executor nativo do Node com TypeScript e armazenamento em memória, incluindo testes de reinicialização e preservação. Não é necessário instalar dependências de teste.
