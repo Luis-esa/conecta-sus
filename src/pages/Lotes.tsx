@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useSearchParams } from 'react-router'
+import PageHeader from '@/components/common/PageHeader'
 import { ConsultaEstado, EmptyResults, FilterSelect, SearchField, ValidityBadge } from '@/components/consultas/ConsultaUI'
 import { opcoesValidade } from '@/components/consultas/filterOptions'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -28,7 +29,7 @@ export default function Lotes() {
 
   return <ConsultaEstado carregado={dadosCarregados} erro={erro}>
     <section className="space-y-5" aria-label="Consulta de lotes">
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm leading-6 text-muted-foreground">{ubs ? `Lotes de ${consultas?.unidades[0]?.nome ?? 'sua unidade'}, com entrada e validade.` : 'Acompanhe os lotes, quantidades e prazos de validade de cada unidade.'}</p>{usuario?.role === 'ADMIN' && <Button asChild size="sm"><Link to="/movimentacoes?operacao=ENTRADA">Registrar novo lote</Link></Button>}</div>
+      <PageHeader title="Lotes" description={ubs ? `Lotes de ${consultas?.unidades[0]?.nome ?? 'sua unidade'}, com entrada e validade.` : 'Acompanhe os lotes, quantidades e prazos de validade de cada unidade.'} actions={usuario?.role === 'ADMIN' ? <Button asChild size="sm"><Link to="/movimentacoes?operacao=ENTRADA">Registrar novo lote</Link></Button> : undefined} />
       <div className={`grid gap-4 rounded-xl border bg-white p-4 sm:grid-cols-2 sm:p-5 ${ubs ? '' : 'lg:grid-cols-3'}`}>
         <SearchField value={filtros.busca} onChange={(valor) => alterar('busca', valor)} placeholder="Medicamento, princípio ativo, código ou lote" />
         {!ubs && <FilterSelect id="filtro-unidade" label="Unidade" value={filtros.unidadeId} onChange={(valor) => alterar('unidadeId', valor)} options={[{ value: 'TODAS', label: 'Todas as unidades' }, ...(consultas?.unidades ?? []).map((item) => ({ value: String(item.id), label: item.nome }))]} />}

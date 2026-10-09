@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Boxes, Building2, CalendarClock, CircleAlert, Pill, ArrowLeftRight } from 'lucide-react'
+import PageHeader from '@/components/common/PageHeader'
 import { AlertSummary, RecentMovements } from '@/components/dashboard/ActivityPanels'
 import StatCard from '@/components/dashboard/StatCard'
 import StockOverview from '@/components/dashboard/StockOverview'
@@ -34,9 +35,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm leading-6 text-muted-foreground">{visaoUbs ? 'Acompanhe a disponibilidade e as movimentações da sua unidade.' : 'Acompanhe a disponibilidade de medicamentos em toda a rede municipal.'}</p>
-      </div>
+      <PageHeader title="Dashboard" description={visaoUbs ? 'Acompanhe a disponibilidade e as movimentações da sua unidade.' : 'Acompanhe a disponibilidade de medicamentos em toda a rede municipal.'} context={visaoUbs ? 'Sua unidade' : 'Rede municipal de saúde'} />
 
       <section aria-label="Indicadores principais" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard titulo={visaoUbs ? 'Sua unidade' : 'Unidades cadastradas'} valor={indicadores.unidades} detalhe={visaoUbs ? 'Unidade vinculada à sua conta' : 'Unidades da rede municipal'} icone={Building2} />

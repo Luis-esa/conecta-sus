@@ -1,4 +1,5 @@
 import { useSearchParams, Link } from 'react-router'
+import PageHeader from '@/components/common/PageHeader'
 import { format, parseISO } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -41,7 +42,7 @@ export default function Alertas() {
 
   return <ConsultaEstado carregado={carregado} erro={erro}>
     <div className="space-y-5">
-      <p className="text-sm leading-6 text-muted-foreground">Situações atuais de estoque e validade. A lista é atualizada após entradas, saídas e transferências.</p>
+      <PageHeader title="Alertas" description="Situações atuais de estoque e validade. A lista é atualizada após entradas, saídas e transferências." />
       <section className="rounded-xl border bg-white p-4 sm:p-5" aria-label="Filtros de alertas">
         <div className={`grid gap-4 sm:grid-cols-2 ${usuario?.role === 'UBS' ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
           <SearchField value={busca} onChange={(valor) => alterar('medicamento', valor)} placeholder="Nome, princípio ativo ou código" />

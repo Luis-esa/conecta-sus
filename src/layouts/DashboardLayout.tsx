@@ -1,23 +1,34 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import AppSidebar from '@/components/layout/AppSidebar'
 import AppHeader from '@/components/layout/AppHeader'
 import AppDataStatus from '@/components/layout/AppDataStatus'
 import { navigation } from '@/routes/navigation'
+import { podeAcessar } from '@/routes/permissoes'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function DashboardLayout() {
   const { pathname } = useLocation()
+  const usuario = useAuthStore((state) => state.usuarioAtual)
   const page = navigation.find((item) => item.path === pathname.replace(/\/$/, ''))
   const title = page?.title ?? 'Página não encontrada'
+  const previousPath = useRef(pathname)
+  const contentHeading = Boolean(usuario && page && podeAcessar(usuario, page.path) && ['/dashboard', '/estoque', '/medicamentos', '/lotes', '/alertas', '/historico', '/relatorios', '/unidades', '/usuarios'].includes(page.path))
   useEffect(() => { document.title = `${title} | ConectaSUS` }, [title])
+  useEffect(() => {
+    if (previousPath.current !== pathname) {
+      document.getElementById('conteudo-principal')?.focus({ preventScroll: true })
+      previousPath.current = pathname
+    }
+  }, [pathname])
 
   return (
     <div className="min-h-dvh">
-      <a href="#conteudo-principal" className="sr-only fixed left-4 top-4 z-[60] rounded-md bg-white p-3 text-primary focus:not-sr-only">Ir para o conteúdo</a>
+      <a href="#conteudo-principal" className="sr-only fixed left-4 top-4 z-[60] rounded-md bg-white p-3 font-semibold text-primary shadow-sm focus:not-sr-only focus:outline-2 focus:outline-ring">Pular para o conteúdo</a>
       <aside className="fixed inset-y-0 left-0 hidden w-64 lg:block"><AppSidebar /></aside>
       <div className="min-w-0 lg:pl-64">
-        <AppHeader title={title} group={page?.group ?? 'Navegação'} pathname={pathname} />
-        <main id="conteudo-principal" tabIndex={-1} className="mx-auto w-full max-w-7xl px-4 py-6 outline-none sm:px-8 sm:py-8">
+        <AppHeader title={title} group={page?.group ?? 'Navegação'} contentHeading={contentHeading} />
+        <main id="conteudo-principal" tabIndex={-1} className="mx-auto w-full max-w-7xl scroll-mt-20 px-4 py-6 outline-none sm:px-8 sm:py-8">
           <AppDataStatus />
           <Outlet />
         </main>

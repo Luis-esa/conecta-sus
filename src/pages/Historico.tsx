@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
+import PageHeader from '@/components/common/PageHeader'
 import FiltrosHistorico from '@/components/relatorios/FiltrosHistorico'
 import { ConsultaEstado } from '@/components/consultas/ConsultaUI'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -28,7 +29,7 @@ export default function Historico() {
 
   return <ConsultaEstado carregado={carregado} erro={erro}>
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Registro de operações concluídas. As movimentações são somente para consulta e não podem ser excluídas nesta interface.</p>
+      <PageHeader title="Histórico" description="Registro de operações concluídas. As movimentações são somente para consulta e não podem ser excluídas nesta interface." />
       <FiltrosHistorico filtros={filtros} alterar={alterar} limpar={() => setFiltros(filtrosHistoricoIniciais)} medicamentos={medicamentosVisiveis} unidades={unidades} usuarios={usuariosVisiveis} ocultarUnidade={usuario?.role === 'UBS'} />
       <section className="overflow-hidden rounded-xl border bg-white" aria-labelledby="titulo-lista-historico">
         <div className="border-b px-5 py-4"><h2 id="titulo-lista-historico" className="font-semibold">Histórico de movimentações</h2><p role="status" className="mt-1 text-sm text-muted-foreground">{filtradas.length} de {linhas.length} operações</p></div>

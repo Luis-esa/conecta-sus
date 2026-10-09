@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import PageHeader from '@/components/common/PageHeader'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import FiltrosHistorico from '@/components/relatorios/FiltrosHistorico'
@@ -49,7 +50,7 @@ export default function Relatorios() {
 
   return <ConsultaEstado carregado={carregado} erro={erro}>
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">Relatórios derivados dos lotes e movimentações atuais. Medicamento e unidade filtram todas as seções; período, operação e usuário filtram apenas movimentações.</p>
+      <PageHeader title="Relatórios" description="Relatórios derivados dos lotes e movimentações atuais. Medicamento e unidade filtram todas as seções; período, operação e usuário filtram apenas movimentações." />
       <FiltrosHistorico filtros={filtros} alterar={alterar} limpar={() => setFiltros(filtrosHistoricoIniciais)} medicamentos={medicamentos} unidades={unidades} usuarios={usuarios} ocultarUnidade={usuario?.role === 'UBS'} />
       <section className="space-y-4 rounded-xl border bg-white p-5" aria-labelledby="relatorio-estoque"><div><h2 id="relatorio-estoque" className="text-lg font-semibold">Estoque</h2><p className="text-sm text-muted-foreground">Saldos atuais, somados dos lotes.</p></div><div className="grid gap-3 sm:grid-cols-3"><Cartao titulo="Quantidade total em estoque" valor={resumo.saldoTotal} /><Cartao titulo="Estoques baixos" valor={resumo.baixos} /><Cartao titulo="Estoques críticos" valor={resumo.criticos} /></div>
         {estoqueFiltrado.length > 0 && <div className="h-56 w-full" role="img" aria-label="Distribuição dos estoques por situação"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={situacoes.filter((item) => item.quantidade > 0)} dataKey="quantidade" nameKey="nome" outerRadius={80} label>{situacoes.filter((item) => item.quantidade > 0).map((item) => <Cell key={item.nome} fill={item.cor} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div>}

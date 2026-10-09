@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import PageHeader from '@/components/common/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ConsultaEstado, EmptyResults, FilterSelect, SearchField } from '@/components/consultas/ConsultaUI'
@@ -24,7 +25,7 @@ export default function Medicamentos() {
 
   return <ConsultaEstado carregado={dadosCarregados} erro={erro}>
     <section className="space-y-5" aria-label="Consulta de medicamentos">
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm leading-6 text-muted-foreground">{usuario?.role === 'UBS' ? 'Medicamentos com lotes cadastrados na sua unidade.' : 'Catálogo de medicamentos cadastrados na rede municipal.'}</p>{usuario?.role === 'ADMIN' && <Button onClick={() => abrir(null)}>Cadastrar medicamento</Button>}</div>
+      <PageHeader title="Medicamentos" description={usuario?.role === 'UBS' ? 'Medicamentos com lotes cadastrados na sua unidade.' : 'Catálogo de medicamentos cadastrados na rede municipal.'} actions={usuario?.role === 'ADMIN' ? <Button onClick={() => abrir(null)}>Cadastrar medicamento</Button> : undefined} />
       <div className="grid gap-4 rounded-xl border bg-white p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:p-5">
         <SearchField value={filtros.busca} onChange={(busca) => setFiltros((atual) => ({ ...atual, busca }))} placeholder="Nome, princípio ativo ou código" />
         <FilterSelect id="filtro-situacao" label="Situação" value={filtros.situacao} onChange={(situacao) => setFiltros((atual) => ({ ...atual, situacao }))} options={[{ value: 'TODOS', label: 'Todos' }, { value: 'ATIVO', label: 'Ativos' }, { value: 'INATIVO', label: 'Inativos' }]} />
