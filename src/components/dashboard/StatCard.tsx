@@ -2,10 +2,10 @@ import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 const tons = {
-  azul: 'bg-blue-50 text-blue-700',
-  verde: 'bg-green-50 text-green-700',
-  amarelo: 'bg-amber-50 text-amber-700',
-  vermelho: 'bg-red-50 text-red-700',
+  azul: 'bg-status-info-bg text-status-info-icon',
+  verde: 'bg-status-success-bg text-status-success-icon',
+  amarelo: 'bg-status-warning-bg text-status-warning-icon',
+  vermelho: 'bg-status-critical-bg text-status-critical-icon',
 } as const
 
 export default function StatCard({ titulo, valor, detalhe, icone: Icon, tom = 'azul' }: {

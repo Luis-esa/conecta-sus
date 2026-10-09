@@ -1,4 +1,4 @@
-﻿# ConectaSUS
+# ConectaSUS
 
 MVP para gestão integrada dos estoques de medicamentos das unidades de saúde de Lagarto. **O backend é simulado**: dados fictícios e persistência no localStorage do navegador.
 
@@ -88,6 +88,14 @@ As coleções usam `conectasus_users`, `conectasus_unidades`, `conectasus_medica
 7. Opcionalmente, entre como ADMIN para demonstrar cadastros e inativação sem excluir o histórico.
 
 Os saldos do roteiro dependem dos dados já persistidos. Para uma demonstração independente, use outro perfil de navegador ou outra porta de desenvolvimento, sem apagar a base existente.
+
+## Continuidade em outra máquina
+
+A fundação visual UI 1 está implementada, com Estoque como piloto. A próxima etapa prevista é **UI 2 — Layout e orientação**, após revisão do piloto.
+
+As skills locais estão em `.agents/skills/`. Os documentos principais do workspace possuem cópias versionadas em `docs/context/AI_RULES.md` e `docs/context/PROJECT_CONTEXT.md`. Ao recriar o workspace, copie esses documentos para a pasta pai do repositório e leia-os antes de desenvolver. Neste workspace, os documentos da pasta pai continuam sendo as fontes principais; mantenha as cópias versionadas sincronizadas quando eles mudarem.
+
+Depois de obter a branch `feat/melhoria-ui-ux`, execute `npm ci` e `npm run dev`. Dados e sessão do localStorage pertencem ao navegador e não acompanham o Git; a primeira execução em outro navegador inicializa os mocks.
 
 ## Limitações do MVP
 

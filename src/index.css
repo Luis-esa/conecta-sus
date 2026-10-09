@@ -1,4 +1,5 @@
-@import "tailwindcss";
+/* Limita a detecção ao frontend; documentação de skills não gera CSS da aplicação. */
+@import "tailwindcss" source("./");
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -32,6 +33,41 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-navigation: var(--navigation);
+  --color-surface: var(--card);
+  --color-disabled: var(--disabled);
+  --color-disabled-foreground: var(--disabled-foreground);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-text: var(--status-success-text);
+  --color-status-success-border: var(--status-success-border);
+  --color-status-success-icon: var(--status-success-icon);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-warning-text: var(--status-warning-text);
+  --color-status-warning-border: var(--status-warning-border);
+  --color-status-warning-icon: var(--status-warning-icon);
+  --color-status-critical-bg: var(--status-critical-bg);
+  --color-status-critical-text: var(--status-critical-text);
+  --color-status-critical-border: var(--status-critical-border);
+  --color-status-critical-icon: var(--status-critical-icon);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-text: var(--status-info-text);
+  --color-status-info-border: var(--status-info-border);
+  --color-status-info-icon: var(--status-info-icon);
+  --color-status-muted-bg: var(--status-muted-bg);
+  --color-status-muted-text: var(--status-muted-text);
+  --color-status-muted-border: var(--status-muted-border);
+  --color-status-muted-icon: var(--status-muted-icon);
+  --text-page: 1.5rem;
+  --text-page--line-height: 2rem;
+  --text-section: 1.125rem;
+  --text-section--line-height: 1.5rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5rem;
+  --text-helper: 0.75rem;
+  --text-helper--line-height: 1.125rem;
+  --radius-panel: 0.75rem;
+  --radius-control: 0.375rem;
+  --shadow-panel: 0 1px 2px rgb(15 23 42 / 0.03);
 }
 
 :root {
@@ -54,12 +90,50 @@
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
   --border: #e2e8f0;
-  --input: #94a3b8;
+  --input: #64748b;
   --ring: #2563eb;
   --success: #15803d;
   --success-foreground: #ffffff;
   --warning: #facc15;
   --warning-foreground: #422006;
+  --navigation: #12345a;
+  --disabled: #f1f5f9;
+  --disabled-foreground: #64748b;
+  /* Status visuais, independentes da classificação do domínio. */
+  --status-success-bg: #f0fdf4;
+  --status-success-text: #166534;
+  --status-success-border: #86efac;
+  --status-success-icon: #15803d;
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fcd34d;
+  --status-warning-icon: #a16207;
+  --status-critical-bg: #fef2f2;
+  --status-critical-text: #991b1b;
+  --status-critical-border: #fca5a5;
+  --status-critical-icon: #b91c1c;
+  --status-info-bg: #eff6ff;
+  --status-info-text: #1e40af;
+  --status-info-border: #93c5fd;
+  --status-info-icon: #1d4ed8;
+  --status-muted-bg: #f1f5f9;
+  --status-muted-text: #475569;
+  --status-muted-border: #cbd5e1;
+  --status-muted-icon: #64748b;
+}
+
+@layer components {
+  /* Espaçamento usa a escala nativa de 4 px do Tailwind (1, 2, 3, 4, 6, 8). */
+  .ui-panel {
+    @apply rounded-panel border border-border bg-surface shadow-panel;
+  }
+
+  .ui-control {
+    @apply w-full min-w-0 rounded-control border border-input bg-surface px-3 text-sm text-foreground;
+    @apply focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+    @apply disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground;
+    @apply aria-invalid:border-destructive;
+  }
 }
 
 @layer base {
