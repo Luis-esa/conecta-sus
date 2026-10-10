@@ -2,7 +2,8 @@ import { format } from 'date-fns'
 import { agregarEstoque } from '../utils/estoque.ts'
 import { carregarDados, salvarCadastro, salvarOperacao, type Armazenamento } from './persistencia.ts'
 import { entradaSchema, saidaSchema, transferenciaSchema, type EntradaDados, type SaidaDados, type TransferenciaDados } from './movimentacaoSchema.ts'
-import { loteValidadeSchema, medicamentoCadastroSchema, unidadeCadastroSchema, usuarioCadastroSchema, type MedicamentoCadastro, type UnidadeCadastro, type UsuarioCadastro } from './cadastroSchema.ts'
+import { loteValidadeSchema, medicamentoCadastroSchema, unidadeCadastroSchema, schemaUsuarioCadastro, type MedicamentoCadastro, type UnidadeCadastro, type UsuarioCadastro } from './cadastroSchema.ts'
+import { CHAVE_CREDENCIAIS, lerCredenciais } from './credenciais.ts'
 import type { Lote, Movimentacao, Usuario } from '../types/index.ts'
 
 function validarAcesso(usuario: Usuario | undefined, unidadeId: number) {
@@ -69,7 +70,7 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
       return salvarCadastro(storage, { ...dados, unidades }, 'unidades')
     },
     async salvarUsuario(adminId: number, entrada: UsuarioCadastro, id?: number) {
-      const cadastro = usuarioCadastroSchema.parse(entrada)
+      const cadastro = schemaUsuarioCadastro(id).parse(entrada)
       const storage = obterStorage()
       const dados = carregarDados(storage)
       validarAdministrador(dados.usuarios, adminId)
@@ -77,12 +78,24 @@ export function criarMockApi(obterStorage: () => Armazenamento = () => window.lo
       if (dados.usuarios.some((item) => item.id !== id && item.email.toLowerCase() === cadastro.email.toLowerCase())) throw new Error('E-mail já cadastrado.')
       if (cadastro.role === 'UBS' && cadastro.ativo && !dados.unidades.some((item) => item.id === cadastro.unidadeId && item.status === 'ATIVA')) throw new Error('Vincule uma unidade ativa ao usuário UBS.')
       if (id === adminId && (cadastro.role !== 'ADMIN' || !cadastro.ativo)) throw new Error('Não é possível remover o próprio acesso administrativo.')
-      const usuario = { ...cadastro, unidadeId: cadastro.role === 'UBS' ? cadastro.unidadeId : undefined }
+      const { senha, ...campos } = cadastro
+      const usuario = { ...campos, unidadeId: cadastro.role === 'UBS' ? cadastro.unidadeId : undefined }
       const usuarios = id === undefined
         ? [...dados.usuarios, { id: proximoId(dados.usuarios), ...usuario }]
         : dados.usuarios.map((item) => item.id === id ? { ...item, ...usuario } : item)
       if (!usuarios.some((item) => item.ativo && item.role === 'ADMIN')) throw new Error('É necessário manter ao menos um administrador ativo.')
-      return salvarCadastro(storage, { ...dados, usuarios }, 'usuarios')
+      const credenciais = lerCredenciais(storage, dados.usuarios)
+      const usuarioId = id ?? usuarios.at(-1)!.id
+      if (senha) credenciais[usuarioId] = senha
+      const anteriores = storage.getItem(CHAVE_CREDENCIAIS)
+      try {
+        storage.setItem(CHAVE_CREDENCIAIS, JSON.stringify(credenciais))
+        return salvarCadastro(storage, { ...dados, usuarios }, 'usuarios')
+      } catch (cause) {
+        if (anteriores === null) storage.removeItem(CHAVE_CREDENCIAIS)
+        else storage.setItem(CHAVE_CREDENCIAIS, anteriores)
+        throw cause
+      }
     },
     async corrigirValidadeLote(adminId: number, loteId: number, dataValidade: string) {
       const validado = loteValidadeSchema.parse({ dataValidade })

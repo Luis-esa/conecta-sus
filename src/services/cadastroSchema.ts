@@ -18,8 +18,14 @@ export const unidadeCadastroSchema = z.object({
 export const usuarioCadastroSchema = z.object({
   nome: texto, email: z.email('Informe um e-mail válido.'), role: z.enum(['ADMIN', 'GESTOR', 'UBS']),
   unidadeId: z.number().int().positive().optional(), ativo: z.boolean(),
+  senha: z.union([z.literal(''), z.string().min(6, 'Use pelo menos 6 caracteres na senha.')]).optional(),
 }).refine((item) => item.role !== 'UBS' || item.unidadeId !== undefined,
   { path: ['unidadeId'], message: 'Vincule uma unidade ao usuário UBS.' })
+
+export function schemaUsuarioCadastro(id?: number) {
+  return usuarioCadastroSchema.refine((item) => id !== undefined || Boolean(item.senha),
+    { path: ['senha'], message: 'Informe uma senha para o novo usuário.' })
+}
 
 export const loteValidadeSchema = z.object({ dataValidade: z.iso.date('Informe uma data válida.') })
 

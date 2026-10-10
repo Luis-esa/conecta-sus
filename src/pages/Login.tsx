@@ -95,13 +95,14 @@ export default function Login() {
                 <button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-control text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring" aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={mostrarSenha} onClick={() => setMostrarSenha((valor) => !valor)}>{mostrarSenha ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}</button>
               </div>
               {errors.senha && <p id="senha-erro" role="alert" className="text-sm text-destructive">{errors.senha.message}</p>}
+              <p className="text-helper text-muted-foreground">Esqueceu a senha? Contate o administrador.</p>
             </div>
             {erro && <p role="alert" className="rounded-control border border-status-critical-border bg-status-critical-bg px-3 py-2 text-sm text-status-critical-text">{erro} Confira o e-mail e a senha e tente novamente.</p>}
             <Button type="submit" className="h-11 w-full" disabled={carregando}>{carregando ? 'Verificando acesso…' : 'Entrar no ConectaSUS'}</Button>
           </form>
           <div className="mt-8 border-t pt-6">
             <h3 className="text-sm font-semibold">Contas de demonstração</h3>
-            <p className="mt-1 text-helper text-muted-foreground">Selecione um perfil para preencher o e-mail. Senha de todas: <strong>123456</strong>.</p>
+            <p className="mt-1 text-helper text-muted-foreground">Selecione um perfil para preencher o e-mail. Senha inicial das contas de demonstração: <strong>123456</strong>. O administrador pode alterá-la.</p>
             <div className="mt-4 grid gap-2">{contas.map((conta) => <button key={conta.email} type="button" className="flex min-h-11 min-w-0 flex-wrap items-center justify-between gap-x-2 rounded-control border px-3 py-2 text-left text-sm hover:border-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring" onClick={() => { setValue('email', conta.email, { shouldValidate: true }); setFocus('senha') }}><span className="font-medium">{conta.perfil}</span><span className="wrap-anywhere text-xs text-muted-foreground">{conta.email}</span></button>)}</div>
           </div>
         </div>

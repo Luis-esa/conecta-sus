@@ -2,9 +2,9 @@ import { z } from 'zod'
 import { mockApi } from './mockApi.ts'
 import type { Armazenamento } from './persistencia.ts'
 import type { Usuario } from '../types/index.ts'
+import { lerCredenciais } from './credenciais.ts'
 
 export const CHAVE_SESSAO = 'conectasus_session'
-const SENHA_DEMONSTRACAO = '123456'
 const sessaoSchema = z.object({ usuarioId: z.number().int().positive() })
 type ServicoUsuarios = Pick<typeof mockApi, 'getUsuarios'>
 
@@ -19,7 +19,7 @@ export function criarAuthApi(
     async login(email: string, senha: string): Promise<Usuario> {
       const usuarios = await usuariosApi.getUsuarios()
       const usuario = usuarios.find((item) => item.email.toLowerCase() === email.trim().toLowerCase() && item.ativo)
-      if (!usuario || senha !== SENHA_DEMONSTRACAO || (usuario.role === 'UBS' && usuario.unidadeId === undefined)) {
+      if (!usuario || senha !== lerCredenciais(storage(), usuarios)[usuario.id] || (usuario.role === 'UBS' && usuario.unidadeId === undefined)) {
         throw new Error('E-mail ou senha inválidos.')
       }
       storage().setItem(CHAVE_SESSAO, JSON.stringify({ usuarioId: usuario.id }))

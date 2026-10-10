@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { criarAuthApi } from './authApi.ts'
+import { CHAVE_CREDENCIAIS } from './credenciais.ts'
 import { criarMockApi } from './mockApi.ts'
 import type { Armazenamento } from './persistencia.ts'
 import { criarAppStore } from '../stores/appStore.ts'
@@ -51,20 +52,45 @@ test('unidades mantêm código único e vínculo UBS válido ao inativar', async
 test('admin gerencia usuário e perfil; sessão de inativo é rejeitada', async () => {
   const storage = new Memoria()
   const api = criarMockApi(() => storage)
-  const cadastro = { nome: 'Responsável Novo', email: 'novo@conectasus.com', role: 'UBS' as const, unidadeId: 1, ativo: true }
+  const cadastro = { nome: 'Responsável Novo', email: 'novo@conectasus.com', role: 'UBS' as const, unidadeId: 1, ativo: true, senha: 'senhaNova123' }
   const novo = (await api.salvarUsuario(1, cadastro)).usuarios.at(-1)!
   const auth = criarAuthApi(api, () => storage)
-  assert.equal((await auth.login(cadastro.email, '123456')).id, novo.id)
-  const editado = (await api.salvarUsuario(1, { ...cadastro, role: 'GESTOR', unidadeId: undefined, ativo: false }, novo.id)).usuarios.at(-1)!
+  assert.equal('senha' in novo, false)
+  await assert.rejects(auth.login(cadastro.email, '123456'), /inválidos/)
+  assert.equal((await auth.login(cadastro.email, cadastro.senha)).id, novo.id)
+  await api.salvarUsuario(1, { ...cadastro, nome: 'Nome editado', senha: '' }, novo.id)
+  assert.equal((await auth.login(cadastro.email, cadastro.senha)).nome, 'Nome editado')
+  await api.salvarUsuario(1, { ...cadastro, senha: 'outraSenha789' }, novo.id)
+  await assert.rejects(auth.login(cadastro.email, cadastro.senha), /inválidos/)
+  assert.equal((await criarAuthApi(criarMockApi(() => storage), () => storage).login(cadastro.email, 'outraSenha789')).id, novo.id)
+  assert.ok(storage.getItem(CHAVE_CREDENCIAIS))
+  assert.equal((await auth.login('gestor@conectasus.com', '123456')).role, 'GESTOR')
+  await auth.login(cadastro.email, 'outraSenha789')
+  const editado = (await api.salvarUsuario(1, { ...cadastro, role: 'GESTOR', unidadeId: undefined, ativo: false, senha: '' }, novo.id)).usuarios.at(-1)!
   assert.equal(editado.role, 'GESTOR')
   assert.equal(editado.unidadeId, undefined)
   assert.equal(await auth.restaurarSessao(), null)
   await assert.rejects(auth.login(cadastro.email, '123456'), /inválidos/)
   await assert.rejects(api.salvarUsuario(2, cadastro), /Somente um administrador/)
+  await assert.rejects(api.salvarUsuario(1, { ...cadastro, email: 'sem-senha@conectasus.com', senha: '' }), /Informe uma senha/)
   await assert.rejects(api.salvarUsuario(1, { ...cadastro, email: 'ADMIN@conectasus.com' }), /E-mail já cadastrado/)
   await assert.rejects(api.salvarUsuario(1, { ...cadastro, email: 'outro@conectasus.com', unidadeId: 999 }), /unidade ativa/)
   await assert.rejects(api.salvarUsuario(1, { ...cadastro, email: 'outro@conectasus.com', unidadeId: undefined }), /Vincule uma unidade/)
   await assert.rejects(api.salvarUsuario(1, { ...cadastro, email: 'admin@conectasus.com', role: 'GESTOR', ativo: false }, 1), /próprio acesso/)
+})
+
+test('falha ao salvar usuário preserva senha anterior e cadastro', async () => {
+  const storage = new Memoria()
+  const api = criarMockApi(() => storage)
+  const antes = await api.getUsuarios()
+  const original = storage.setItem.bind(storage)
+  storage.setItem = (chave, valor) => {
+    if (chave === 'conectasus_users') throw new Error('Falha simulada')
+    original(chave, valor)
+  }
+  await assert.rejects(api.salvarUsuario(1, { nome: 'Novo', email: 'novo@conectasus.com', role: 'GESTOR', ativo: true, senha: 'senhaNova123' }), /Não foi possível salvar o cadastro/)
+  assert.equal(storage.getItem(CHAVE_CREDENCIAIS), null)
+  assert.deepEqual(await api.getUsuarios(), antes)
 })
 
 test('validade de lote pode ser corrigida sem alterar saldo ou movimentações', async () => {
