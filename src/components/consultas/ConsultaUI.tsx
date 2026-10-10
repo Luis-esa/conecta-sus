@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/stores/appStore'
 import type { StatusEstoque } from '@/types'
 import type { StatusValidade } from '@/utils/validade'
 
@@ -35,13 +36,14 @@ export function SearchField({ value, onChange, placeholder, hint, controlClassNa
 }
 
 export function FilterSelect({ id, label, value, onChange, options, controlClassName }: { id: string; label: string; value: string; onChange: (value: string) => void; options: { value: string; label: string }[]; controlClassName?: string }) {
-  return <div className="min-w-0 space-y-2"><Label htmlFor={id}>{label}</Label><select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={cn('ui-control h-9', controlClassName)}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
+  return <div className="min-w-0 space-y-2"><Label htmlFor={id}>{label}</Label><select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={cn('ui-control h-11', controlClassName)}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
 }
 
 export function ConsultaEstado({ carregado, erro, children, loadingLabel }: { carregado: boolean; erro: string | null; children: ReactNode; loadingLabel?: string }) {
+  const recarregar = useAppStore((state) => state.recarregar)
   if (carregado) return children
   if (!erro) return <LoadingState label={loadingLabel} />
-  return <section className="ui-panel p-6 text-body text-muted-foreground">A consulta estará disponível após o carregamento dos dados.</section>
+  return <section className="ui-panel space-y-4 p-6" role="alert"><div><h1 className="text-section font-semibold">Não foi possível carregar os dados</h1><p className="mt-2 text-body text-muted-foreground">{erro}</p></div><Button type="button" variant="outline" onClick={() => void recarregar()}>Tentar novamente</Button></section>
 }
 
 export function EmptyResults({ filtrado, onClear, title }: { filtrado: boolean; onClear: () => void; title?: string }) {

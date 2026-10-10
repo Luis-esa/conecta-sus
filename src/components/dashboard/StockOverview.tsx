@@ -18,14 +18,14 @@ export default function StockOverview({ dados }: { dados: Ponto[] }) {
               <XAxis type="number" allowDecimals={false} tickLine={false} axisLine={false} />
               <YAxis type="category" dataKey="nome" width={58} tickLine={false} axisLine={false} tick={{ fill: '#475569', fontSize: 12 }} />
               <Tooltip formatter={(valor) => [valor, 'Medicamentos por unidade']} cursor={{ fill: '#f8fafc' }} />
-              <Bar dataKey="quantidade" radius={[0, 4, 4, 0]} maxBarSize={25}>
+              <Bar dataKey="quantidade" radius={[0, 4, 4, 0]} maxBarSize={25} isAnimationActive={false}>
                 {dados.map((item) => <Cell key={item.nome} fill={item.cor} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t pt-4 text-xs text-muted-foreground">
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t pt-4 text-xs text-muted-foreground" aria-label="Legenda e valores do gráfico">
         {dados.map((item) => <span key={item.nome} className="inline-flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ backgroundColor: item.cor }} />{item.nome}: <strong className="font-semibold text-foreground">{item.quantidade}</strong></span>)}
       </div>
     </section>

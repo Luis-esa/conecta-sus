@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import PageHeader from '@/components/common/PageHeader'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { Button } from '@/components/ui/button'
 import { ConsultaEstado, EmptyResults, FilterSelect, SearchField } from '@/components/consultas/ConsultaUI'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -18,8 +18,9 @@ export default function Medicamentos() {
   const [filtros, setFiltros] = useState<FiltrosMedicamentos>(filtrosIniciais)
   const [editando, setEditando] = useState<number | null>(null)
   const [formAberto, setFormAberto] = useState(false)
+  const [focoAnterior, setFocoAnterior] = useState<HTMLElement | null>(null)
   const limparErro = useAppStore((state) => state.limparErroOperacao)
-  const abrir = (id: number | null) => { limparErro(); setEditando(id); setFormAberto(true) }
+  const abrir = (id: number | null) => { setFocoAnterior(document.activeElement as HTMLElement | null); limparErro(); setEditando(id); setFormAberto(true) }
   const linhas = consultas ? filtrarMedicamentos(consultas.medicamentos, filtros) : []
   const filtrado = filtros.busca !== '' || filtros.situacao !== 'TODOS'
 
@@ -35,12 +36,12 @@ export default function Medicamentos() {
         {linhas.length === 0 ? <EmptyResults filtrado={filtrado} onClear={() => setFiltros(filtrosIniciais)} /> : <Table className="min-w-[1080px]">
           <TableHeader className="bg-slate-50"><TableRow><TableHead className="pl-5 sm:pl-6">Medicamento</TableHead><TableHead>Princípio ativo</TableHead><TableHead>Concentração</TableHead><TableHead>Forma</TableHead><TableHead>Unidade</TableHead><TableHead>Código</TableHead><TableHead className="text-right">Mínimo</TableHead><TableHead className="text-right">Máximo</TableHead><TableHead>Unidades com lote</TableHead><TableHead>Situação</TableHead>{usuario?.role === 'ADMIN' && <TableHead className="pr-5 sm:pr-6">Ações</TableHead>}</TableRow></TableHeader>
           <TableBody>{linhas.map(({ medicamento, unidadesComLote }) => <TableRow key={medicamento.id}>
-            <TableCell className="pl-5 font-medium sm:pl-6"><Link to={`/lotes?busca=${encodeURIComponent(medicamento.nome)}`} className="text-primary underline-offset-2 hover:underline">{medicamento.nome}</Link></TableCell>
-            <TableCell>{medicamento.principioAtivo}</TableCell><TableCell>{medicamento.concentracao}</TableCell><TableCell>{medicamento.formaFarmaceutica}</TableCell><TableCell>{medicamento.unidadeMedida}</TableCell><TableCell className="font-mono text-xs">{medicamento.codigo}</TableCell><TableCell className="text-right tabular-nums">{medicamento.estoqueMinimo}</TableCell><TableCell className="text-right tabular-nums">{medicamento.estoqueMaximo ?? '—'}</TableCell><TableCell>{unidadesComLote.length ? unidadesComLote.map((item) => item.nome).join(', ') : '—'}</TableCell><TableCell><Badge variant="outline" className={medicamento.ativo ? 'border-green-200 bg-green-50 text-green-800' : 'border-slate-200 bg-slate-100 text-slate-700'}>{medicamento.ativo ? 'Ativo' : 'Inativo'}</Badge></TableCell>{usuario?.role === 'ADMIN' && <TableCell className="pr-5 sm:pr-6"><Button size="sm" variant="outline" onClick={() => abrir(medicamento.id)}>Editar</Button></TableCell>}
+            <TableCell className="max-w-48 whitespace-normal pl-5 font-medium sm:pl-6"><Link to={`/lotes?busca=${encodeURIComponent(medicamento.nome)}`} className="text-primary underline-offset-2 hover:underline">{medicamento.nome}</Link></TableCell>
+            <TableCell className="max-w-40 whitespace-normal">{medicamento.principioAtivo}</TableCell><TableCell>{medicamento.concentracao}</TableCell><TableCell className="max-w-36 whitespace-normal">{medicamento.formaFarmaceutica}</TableCell><TableCell>{medicamento.unidadeMedida}</TableCell><TableCell className="font-mono text-xs">{medicamento.codigo}</TableCell><TableCell className="text-right tabular-nums">{medicamento.estoqueMinimo}</TableCell><TableCell className="text-right tabular-nums">{medicamento.estoqueMaximo ?? '—'}</TableCell><TableCell className="max-w-56 whitespace-normal">{unidadesComLote.length ? unidadesComLote.map((item) => item.nome).join(', ') : '—'}</TableCell><TableCell><StatusBadge label={medicamento.ativo ? 'Ativo' : 'Inativo'} tone={medicamento.ativo ? 'success' : 'muted'} /></TableCell>{usuario?.role === 'ADMIN' && <TableCell className="pr-5 sm:pr-6"><Button size="sm" variant="outline" aria-label={`Editar medicamento ${medicamento.nome}`} onClick={() => abrir(medicamento.id)}>Editar</Button></TableCell>}
           </TableRow>)}</TableBody>
         </Table>}
       </div>
-      {usuario?.role === 'ADMIN' && <Dialog open={formAberto} onOpenChange={setFormAberto}>{formAberto && <MedicamentoForm key={editando ?? 'novo'} adminId={usuario.id} item={consultas?.medicamentos.find((linha) => linha.medicamento.id === editando)?.medicamento} onSaved={() => setFormAberto(false)} />}</Dialog>}
+      {usuario?.role === 'ADMIN' && <Dialog open={formAberto} onOpenChange={setFormAberto}>{formAberto && <MedicamentoForm key={editando ?? 'novo'} adminId={usuario.id} item={consultas?.medicamentos.find((linha) => linha.medicamento.id === editando)?.medicamento} onSaved={() => setFormAberto(false)} returnFocusTo={focoAnterior} />}</Dialog>}
     </section>
   </ConsultaEstado>
 }

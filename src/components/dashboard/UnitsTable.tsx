@@ -1,14 +1,9 @@
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { ResumoUnidade } from '@/utils/dashboard'
 
 const rotulos = { NORMAL: 'Normal', ATENCAO: 'Atenção', CRITICO: 'Crítico', INATIVA: 'Inativa' }
-const estilos = {
-  NORMAL: 'border-green-200 bg-green-50 text-green-800',
-  ATENCAO: 'border-amber-200 bg-amber-50 text-amber-800',
-  CRITICO: 'border-red-200 bg-red-50 text-red-800',
-  INATIVA: 'border-slate-200 bg-slate-100 text-slate-700',
-}
+const tons = { NORMAL: 'success', ATENCAO: 'warning', CRITICO: 'critical', INATIVA: 'muted' } as const
 
 export default function UnitsTable({ unidades }: { unidades: ResumoUnidade[] }) {
   return (
@@ -17,8 +12,9 @@ export default function UnitsTable({ unidades }: { unidades: ResumoUnidade[] }) 
         <h2 id="titulo-unidades" className="text-lg font-semibold">Situação das unidades</h2>
         <p className="mt-1 text-sm text-muted-foreground">Resumo dos medicamentos com lotes cadastrados em cada unidade.</p>
       </div>
-      <Table>
-        <TableHeader className="bg-slate-50"><TableRow>
+      <p className="border-y bg-muted/40 px-5 py-2 text-helper text-muted-foreground sm:px-6">Em telas menores, deslize a tabela ou use as setas do teclado.</p>
+      <Table className="min-w-[680px]" containerProps={{ tabIndex: 0, role: 'region', 'aria-label': 'Situação das unidades' }}>
+        <TableHeader className="bg-muted/60"><TableRow>
           <TableHead className="pl-5 sm:pl-6">Unidade</TableHead>
           <TableHead className="text-right">Medicamentos</TableHead>
           <TableHead className="text-right">Baixo</TableHead>
@@ -28,12 +24,12 @@ export default function UnitsTable({ unidades }: { unidades: ResumoUnidade[] }) 
         </TableRow></TableHeader>
         <TableBody>
           {unidades.map((unidade) => <TableRow key={unidade.id}>
-            <TableCell className="pl-5 font-medium sm:pl-6">{unidade.nome}</TableCell>
+            <TableCell className="max-w-44 whitespace-normal pl-5 font-medium sm:pl-6">{unidade.nome}</TableCell>
             <TableCell className="text-right tabular-nums">{unidade.medicamentos}</TableCell>
             <TableCell className="text-right tabular-nums">{unidade.baixos}</TableCell>
             <TableCell className="text-right tabular-nums">{unidade.criticos}</TableCell>
             <TableCell className="text-right tabular-nums">{unidade.vencimentos}</TableCell>
-            <TableCell className="pr-5 text-right sm:pr-6"><Badge variant="outline" className={estilos[unidade.status]}>{rotulos[unidade.status]}</Badge></TableCell>
+            <TableCell className="pr-5 text-right sm:pr-6"><StatusBadge label={rotulos[unidade.status]} tone={tons[unidade.status]} /></TableCell>
           </TableRow>)}
         </TableBody>
       </Table>

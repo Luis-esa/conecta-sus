@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import FilterBar from '@/components/common/FilterBar'
 import PageHeader from '@/components/common/PageHeader'
 import TablePanel from '@/components/common/TablePanel'
@@ -16,8 +16,14 @@ const filtrosIniciais: FiltrosEstoque = { busca: '', unidadeId: 'TODAS', status:
 
 export default function Estoque() {
   const { consultas, usuario, dadosCarregados, erro } = useConsultas()
-  const [filtros, setFiltros] = useState<FiltrosEstoque>(filtrosIniciais)
+  const [params, setParams] = useSearchParams()
+  const [filtros, setFiltros] = useState<FiltrosEstoque>(() => ({
+    ...filtrosIniciais,
+    busca: params.get('busca') ?? '',
+    unidadeId: params.get('unidade') ?? 'TODAS',
+  }))
   const alterar = (campo: keyof FiltrosEstoque, valor: string) => setFiltros((atual) => ({ ...atual, [campo]: valor }))
+  const limpar = () => { setFiltros(filtrosIniciais); setParams({}, { replace: true }) }
   const linhas = consultas ? filtrarEstoque(consultas.estoque, filtros) : []
   const filtrosAtivos = Object.entries(filtros).some(([campo, valor]) => valor !== filtrosIniciais[campo as keyof FiltrosEstoque])
   const ubs = usuario?.role === 'UBS'
@@ -39,8 +45,8 @@ export default function Estoque() {
         <FilterSelect id="filtro-status" label="Situação do estoque" value={filtros.status} onChange={(valor) => alterar('status', valor)} controlClassName="h-11 sm:h-10" options={[{ value: 'TODOS', label: 'Todas as situações' }, { value: 'NORMAL', label: 'Normal' }, { value: 'BAIXO', label: 'Baixo' }, { value: 'CRITICO', label: 'Crítico' }]} />
         <FilterSelect id="filtro-validade" label="Validade" value={filtros.validade} onChange={(valor) => alterar('validade', valor)} controlClassName="h-11 sm:h-10" options={[...opcoesValidade, { value: 'SEM_SALDO', label: 'Sem lote com saldo' }]} />
       </FilterBar>
-      <TablePanel title="Estoque atual" count={`${linhas.length} ${linhas.length === 1 ? 'registro encontrado' : 'registros encontrados'}`} actions={filtrosAtivos && <Button variant="ghost" onClick={() => setFiltros(filtrosIniciais)}>Limpar filtros</Button>}>
-        {linhas.length === 0 ? <EmptyResults filtrado={filtrosAtivos} title="Nenhum medicamento encontrado" onClear={() => setFiltros(filtrosIniciais)} /> : <>
+      <TablePanel title="Estoque atual" count={`${linhas.length} ${linhas.length === 1 ? 'registro encontrado' : 'registros encontrados'}`} actions={filtrosAtivos && <Button variant="ghost" onClick={limpar}>Limpar filtros</Button>}>
+        {linhas.length === 0 ? <EmptyResults filtrado={filtrosAtivos} title="Nenhum medicamento encontrado" onClear={limpar} /> : <>
           <p id="estoque-rolagem" className="border-b bg-muted/40 px-4 py-2 text-helper text-muted-foreground sm:px-6">Deslize a tabela ou use as setas do teclado para consultar todas as colunas.</p>
           <Table className="min-w-[720px] table-fixed text-body" containerProps={{ tabIndex: 0, role: 'region', 'aria-label': 'Tabela de estoque', 'aria-describedby': 'estoque-rolagem', className: 'focus-visible:outline-offset-[-2px]' }}>
             <TableHeader className="bg-muted/60"><TableRow>

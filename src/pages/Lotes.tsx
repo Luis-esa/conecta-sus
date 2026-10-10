@@ -20,6 +20,7 @@ export default function Lotes() {
   const [parametros, setParametros] = useSearchParams()
   const [filtros, setFiltros] = useState<FiltrosLotes>({ busca: parametros.get('busca') ?? '', unidadeId: parametros.get('unidade') ?? 'TODAS', validade: 'TODAS' })
   const [loteEditando, setLoteEditando] = useState<number | null>(null)
+  const [focoAnterior, setFocoAnterior] = useState<HTMLElement | null>(null)
   const limparErro = useAppStore((state) => state.limparErroOperacao)
   const alterar = (campo: keyof FiltrosLotes, valor: string) => setFiltros((atual) => ({ ...atual, [campo]: valor }))
   const linhas = consultas ? filtrarLotes(consultas.lotes, filtros) : []
@@ -40,11 +41,11 @@ export default function Lotes() {
         {linhas.length === 0 ? <EmptyResults filtrado={filtrado} onClear={limparFiltros} /> : <Table className="min-w-[760px]">
           <TableHeader className="bg-slate-50"><TableRow><TableHead className="pl-5 sm:pl-6">Medicamento</TableHead><TableHead>Número do lote</TableHead><TableHead className="text-right">Quantidade</TableHead><TableHead>Unidade</TableHead><TableHead>Entrada</TableHead><TableHead>Validade</TableHead><TableHead>Situação</TableHead>{usuario?.role === 'ADMIN' && <TableHead className="pr-5 sm:pr-6">Ações</TableHead>}</TableRow></TableHeader>
           <TableBody>{linhas.map(({ lote, medicamento, unidade, statusValidade }) => <TableRow key={lote.id}>
-            <TableCell className="pl-5 font-medium sm:pl-6">{medicamento.nome}<p className="text-xs font-normal text-muted-foreground">{medicamento.codigo}</p></TableCell><TableCell className="font-mono text-xs">{lote.numero}</TableCell><TableCell className="text-right font-semibold tabular-nums">{lote.quantidade}</TableCell><TableCell>{unidade.nome}</TableCell><TableCell>{format(parseISO(lote.dataEntrada), 'dd/MM/yyyy')}</TableCell><TableCell>{format(parseISO(lote.dataValidade), 'dd/MM/yyyy')}</TableCell><TableCell><ValidityBadge status={statusValidade} /></TableCell>{usuario?.role === 'ADMIN' && <TableCell className="pr-5 sm:pr-6"><Button size="sm" variant="outline" onClick={() => { limparErro(); setLoteEditando(lote.id) }}>Corrigir validade</Button></TableCell>}
+            <TableCell className="max-w-48 whitespace-normal pl-5 font-medium sm:pl-6">{medicamento.nome}<p className="text-xs font-normal text-muted-foreground">{medicamento.codigo}</p></TableCell><TableCell className="font-mono text-xs">{lote.numero}</TableCell><TableCell className="text-right font-semibold tabular-nums">{lote.quantidade}</TableCell><TableCell className="max-w-40 whitespace-normal">{unidade.nome}</TableCell><TableCell>{format(parseISO(lote.dataEntrada), 'dd/MM/yyyy')}</TableCell><TableCell>{format(parseISO(lote.dataValidade), 'dd/MM/yyyy')}</TableCell><TableCell><ValidityBadge status={statusValidade} /></TableCell>{usuario?.role === 'ADMIN' && <TableCell className="pr-5 sm:pr-6"><Button size="sm" variant="outline" aria-label={`Corrigir validade do lote ${lote.numero} de ${medicamento.nome}`} onClick={() => { setFocoAnterior(document.activeElement as HTMLElement | null); limparErro(); setLoteEditando(lote.id) }}>Corrigir validade</Button></TableCell>}
           </TableRow>)}</TableBody>
         </Table>}
       </div>
-      {usuario?.role === 'ADMIN' && <Dialog open={loteEditando !== null} onOpenChange={(aberto) => { if (!aberto) setLoteEditando(null) }}>{loteEditando !== null && consultas && <ValidadeLoteForm key={loteEditando} adminId={usuario.id} lote={consultas.lotes.find((linha) => linha.lote.id === loteEditando)!.lote} onSaved={() => setLoteEditando(null)} />}</Dialog>}
+      {usuario?.role === 'ADMIN' && <Dialog open={loteEditando !== null} onOpenChange={(aberto) => { if (!aberto) setLoteEditando(null) }}>{loteEditando !== null && consultas && <ValidadeLoteForm key={loteEditando} adminId={usuario.id} lote={consultas.lotes.find((linha) => linha.lote.id === loteEditando)!.lote} onSaved={() => setLoteEditando(null)} returnFocusTo={focoAnterior} />}</Dialog>}
     </section>
   </ConsultaEstado>
 }

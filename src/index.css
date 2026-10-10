@@ -133,6 +133,7 @@
     @apply focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
     @apply disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground;
     @apply aria-invalid:border-destructive;
+    @apply read-only:bg-muted read-only:text-muted-foreground;
   }
 }
 
@@ -144,6 +145,10 @@
   body {
     @apply m-0 bg-background font-sans text-foreground antialiased;
     line-height: 1.5;
+  }
+
+  html {
+    scroll-padding-top: 5rem;
   }
 
   :focus-visible {

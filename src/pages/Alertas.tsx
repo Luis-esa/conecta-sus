@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from 'react-router'
 import PageHeader from '@/components/common/PageHeader'
 import { format, parseISO } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { Button } from '@/components/ui/button'
 import { ConsultaEstado, FilterSelect, SearchField } from '@/components/consultas/ConsultaUI'
 import { useAppStore } from '@/stores/appStore'
@@ -56,8 +56,8 @@ export default function Alertas() {
         {filtrados.length === 0 ? <div className="px-5 py-12 text-center sm:px-6"><p className="font-medium">{filtrosAtivos ? 'Nenhum alerta encontrado' : 'Nenhum alerta ativo no momento'}</p><p className="mt-2 text-sm text-muted-foreground">{filtrosAtivos ? 'Altere os filtros para ampliar a consulta.' : 'Os estoques e lotes atuais não exigem atenção para este perfil.'}</p>{filtrosAtivos && <Button variant="outline" className="mt-5" onClick={() => setParams(new URLSearchParams())}>Limpar filtros</Button>}</div> : <div className="divide-y">{filtrados.map((item) => {
           const medicamento = medicamentoPorId.get(item.medicamentoId)
           return <article key={item.id} className="flex flex-wrap items-start justify-between gap-4 px-5 py-4 sm:px-6">
-            <div className="min-w-0 space-y-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{medicamento?.nome ?? 'Medicamento'}</h3><Badge variant="outline" className={item.severidade === 'CRITICA' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800'}>{item.severidade === 'CRITICA' ? 'Crítica' : 'Atenção'}</Badge></div><p className="text-sm text-muted-foreground">{unidadePorId.get(item.unidadeId) ?? 'Unidade'} · {titulos[item.tipo]}{item.dataValidade ? ` · validade ${format(parseISO(item.dataValidade), 'dd/MM/yyyy')}` : ''}</p><p className="text-sm">{item.mensagem}</p></div>
-            <Button asChild variant="outline" size="sm"><Link to={item.tipo === 'VENCIMENTO' ? `/lotes?busca=${encodeURIComponent(medicamento?.nome ?? '')}&unidade=${item.unidadeId}` : '/estoque'}>Ver {item.tipo === 'VENCIMENTO' ? 'lotes' : 'estoque'}</Link></Button>
+            <div className="min-w-0 space-y-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{medicamento?.nome ?? 'Medicamento'}</h3><StatusBadge label={item.severidade === 'CRITICA' ? 'Crítica' : 'Atenção'} tone={item.severidade === 'CRITICA' ? 'critical' : 'warning'} /></div><p className="text-sm text-muted-foreground">{unidadePorId.get(item.unidadeId) ?? 'Unidade'} · {titulos[item.tipo]}{item.dataValidade ? ` · validade ${format(parseISO(item.dataValidade), 'dd/MM/yyyy')}` : ''}</p><p className="max-w-prose text-sm leading-6 wrap-anywhere">{item.mensagem}</p></div>
+            <Button asChild variant="outline" size="sm"><Link aria-label={`Ver ${item.tipo === 'VENCIMENTO' ? 'lotes' : 'estoque'} de ${medicamento?.nome ?? 'medicamento'} em ${unidadePorId.get(item.unidadeId) ?? 'unidade'}`} to={item.tipo === 'VENCIMENTO' ? `/lotes?busca=${encodeURIComponent(medicamento?.nome ?? '')}&unidade=${item.unidadeId}` : `/estoque?busca=${encodeURIComponent(medicamento?.nome ?? '')}&unidade=${item.unidadeId}`}>Ver {item.tipo === 'VENCIMENTO' ? 'lotes' : 'estoque'}</Link></Button>
           </article>
         })}</div>}
       </section>

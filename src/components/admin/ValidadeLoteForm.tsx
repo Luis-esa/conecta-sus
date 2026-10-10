@@ -9,7 +9,7 @@ import { useAppStore } from '@/stores/appStore'
 import { loteValidadeSchema } from '@/services/cadastroSchema'
 import type { Lote } from '@/types'
 
-export default function ValidadeLoteForm({ adminId, lote, onSaved }: { adminId: number; lote: Lote; onSaved: () => void }) {
+export default function ValidadeLoteForm({ adminId, lote, onSaved, returnFocusTo }: { adminId: number; lote: Lote; onSaved: () => void; returnFocusTo?: HTMLElement | null }) {
   const salvar = useAppStore((state) => state.corrigirValidadeLote)
   const carregando = useAppStore((state) => state.operacaoCarregando)
   const erro = useAppStore((state) => state.operacaoErro)
@@ -17,5 +17,5 @@ export default function ValidadeLoteForm({ adminId, lote, onSaved }: { adminId: 
   const enviar = handleSubmit(async ({ dataValidade }) => {
     if (await salvar(adminId, lote.id, dataValidade)) { toast.success('Validade corrigida.'); onSaved() }
   })
-  return <DialogContent><DialogHeader><DialogTitle>Corrigir validade</DialogTitle><DialogDescription>Lote {lote.numero}. A correção se aplica ao mesmo lote em todas as unidades. Quantidades só mudam por movimentações.</DialogDescription></DialogHeader><form onSubmit={enviar} className="space-y-4" noValidate><div className="space-y-2"><Label htmlFor="lote-validade">Nova validade</Label><Input id="lote-validade" type="date" {...register('dataValidade')} aria-invalid={Boolean(errors.dataValidade)} />{errors.dataValidade && <p className="text-sm text-destructive">{errors.dataValidade.message}</p>}</div>{erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}<DialogFooter><Button type="submit" disabled={carregando}>{carregando ? 'Salvando…' : 'Salvar validade'}</Button></DialogFooter></form></DialogContent>
+  return <DialogContent className="max-h-[90dvh] overflow-y-auto" onCloseAutoFocus={(event) => { if (returnFocusTo?.isConnected) { event.preventDefault(); returnFocusTo.focus() } }}><DialogHeader><DialogTitle>Corrigir validade</DialogTitle><DialogDescription>Lote {lote.numero}. A correção se aplica ao mesmo lote em todas as unidades. Quantidades só mudam por movimentações.</DialogDescription></DialogHeader><form onSubmit={enviar} className="space-y-4" noValidate><div className="space-y-2"><Label htmlFor="lote-validade">Nova validade</Label><Input id="lote-validade" className="h-11" type="date" {...register('dataValidade')} aria-invalid={Boolean(errors.dataValidade)} aria-describedby={errors.dataValidade ? 'lote-validade-erro' : undefined} />{errors.dataValidade && <p id="lote-validade-erro" role="alert" className="text-sm text-destructive">{errors.dataValidade.message}</p>}</div>{erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}<DialogFooter><Button type="button" variant="outline" onClick={onSaved} disabled={carregando}>Cancelar</Button><Button type="submit" disabled={carregando}>{carregando ? 'Salvando…' : 'Salvar validade'}</Button></DialogFooter></form></DialogContent>
 }
